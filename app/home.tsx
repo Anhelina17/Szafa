@@ -14,7 +14,7 @@ export default function HomeScreen() {
           <Text style={styles.buttonText}>Dodaj ubrania</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
+        <TouchableOpacity style={styles.button} onPress={()=> router.push("/wardrobe/wardrobe")}>
           <Text style={styles.buttonText}>Zobacz szafę</Text>
         </TouchableOpacity>
 
