@@ -6,10 +6,10 @@ export default function WardrobeScreen() {
 
 const folders = [
     { name: "Ulubione", path: "/wardrobe/favorites/favorites" },
-    { name: "Góra", path: "/wardrobe/top" },
-    { name: "Dół", path: "/wardrobe/bottom" },
-    { name: "Buty", path: "/wardrobe/shoes" },
-    { name: "Akcesoria", path: "/wardrobe/accessories" },
+    { name: "Góra", path: "/wardrobe/top/wardrobe_top" },
+    { name: "Dół", path: "/wardrobe/bottom/wardrobe_bottom" },
+    { name: "Buty", path: "/wardrobe/shoes/wardrobe_shoes" },
+    { name: "Akcesoria", path: "/wardrobe/accessories/wardrobe_accessories" },
   ];
 
    return (
