@@ -23,8 +23,18 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Logowanie</Text>
 
-      <TextInput style={styles.input} placeholder="Email" placeholderTextColor='#525252' onChangeText={setEmail} />
-      <TextInput style={styles.input} placeholder="Hasło" placeholderTextColor='#525252' secureTextEntry onChangeText={setPassword} />
+      <TextInput 
+      style={styles.input} 
+      placeholder="Email" 
+      placeholderTextColor='#525252' 
+      onChangeText={setEmail} />
+      
+      <TextInput 
+      style={styles.input} 
+      placeholder="Hasło" 
+      placeholderTextColor='#525252' 
+      secureTextEntry 
+      onChangeText={setPassword} />
 
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
         <Text style={styles.buttonText}>Zaloguj</Text>

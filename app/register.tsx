@@ -41,12 +41,14 @@ export default function RegisterScreen() {
       <TextInput
         style={styles.input}
         placeholder="Imię"
+        placeholderTextColor='#525252'
         onChangeText={setName}
       />
 
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor='#525252'
         autoCapitalize="none"
         onChangeText={setEmail}
       />
@@ -55,6 +57,7 @@ export default function RegisterScreen() {
         <TextInput
           style={[styles.input, { flex: 1 }]}
           placeholder="Hasło"
+          placeholderTextColor='#525252'
           secureTextEntry={!showPassword}
           onChangeText={setPassword}
         />
