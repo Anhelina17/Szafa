@@ -33,6 +33,13 @@ export default function HomeScreen() {
       >
         <Text style={styles.profileText}>Profil</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+      style={styles.plus}
+      onPress={() => router.push("/camera")}
+      >
+        <Text style={styles.plusText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -88,4 +95,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  plus: {
+    position: "absolute",
+    bottom: 30,
+    right: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#AE847E",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5, 
+  },
+  
+  plusText: {
+    position: "absolute",
+    bottom: 0.5,
+    fontSize: 60,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+
 });
