@@ -66,7 +66,7 @@ export default function PhotoPreviewScreen() {
           onPress={handleDiscard}
           disabled={isLoading}
         >
-          <Text style={styles.buttonText}>Usuń</Text>
+          <Text style={styles.buttonText}>Wróć</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
