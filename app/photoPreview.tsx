@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useBackgroundRemoval } from "../hooks/use-backgroundRemoval";
+import { supabase } from "../supabaseClient";
 
 export default function PhotoPreviewScreen() {
   const { uri } = useLocalSearchParams<{ uri: string }>();
@@ -31,9 +32,43 @@ export default function PhotoPreviewScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.button}
-            onPress={() => {
-              alert("Gotowe do zapisania!");
-            }}
+            onPress={async () => {
+                try {
+                  if (!resultUri) return;
+              
+                  console.log("Dodajemy zdjęcie...");
+              
+                  
+                  const response = await fetch(resultUri);
+                  const blob = await response.blob();
+              
+                  
+                  const fileName = `clothes/item-${Date.now()}.png`;
+
+              
+                  
+                  const { data, error } = await supabase.storage
+                    .from("clothes")
+                    .upload(fileName, blob, {
+                      contentType: "image/png",
+                    });
+              
+                  if (error) {
+                    console.log("UPLOAD ERROR:", error);
+                    alert("Błąd zapisania zdjęcia");
+                    return;
+                  }
+              
+                  console.log("UDANY UPLOAD:", data);
+              
+                  alert("Zdjęcie zostało zapisane");
+                  router.back();
+              
+                } catch (err) {
+                  console.log(err);
+                  alert("Błąd zapisu");
+                }
+              }}
           >
             <Text style={styles.buttonText}>Zapisz</Text>
           </TouchableOpacity>
