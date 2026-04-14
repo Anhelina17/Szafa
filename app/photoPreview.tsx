@@ -1,3 +1,4 @@
+import * as ImageManipulator from "expo-image-manipulator";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useBackgroundRemoval } from "../hooks/use-backgroundRemoval";
@@ -8,10 +9,24 @@ export default function PhotoPreviewScreen() {
   const router = useRouter();
   const { isLoading, error, resultUri, process, reset } =
     useBackgroundRemoval();
+const convertIfHeic = async (uri: string) => {
+  if (!uri.toLowerCase().endsWith(".heic")) {
+    return uri; // jeśli nie HEIC → nic nie robimy
+  }
 
-  const handleConfirm = () => {
-    process(uri);
-  };
+  const manipulated = await ImageManipulator.manipulateAsync(
+    uri,
+    [],
+    { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+  );
+
+  return manipulated.uri;
+};
+
+  const handleConfirm = async () => {
+  const safeUri = await convertIfHeic(uri);
+  process(safeUri);
+};
 
   const handleDiscard = () => {
     reset();
