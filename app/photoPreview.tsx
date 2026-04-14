@@ -11,7 +11,7 @@ export default function PhotoPreviewScreen() {
     useBackgroundRemoval();
 const convertIfHeic = async (uri: string) => {
   if (!uri.toLowerCase().endsWith(".heic")) {
-    return uri; // jeśli nie HEIC → nic nie robimy
+    return uri; 
   }
 
   const manipulated = await ImageManipulator.manipulateAsync(
