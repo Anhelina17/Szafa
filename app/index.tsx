@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: "#fff",
+    backgroundColor: "#FFFAF6",
     paddingHorizontal: 20
   },
   title: {
@@ -42,14 +42,20 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '70%',
-    backgroundColor: '#AE847E',
+    backgroundColor: '#A37D5D33',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginVertical: 10
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "#A37D5D33",
+    shadowColor: "#A37D5D",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   buttonText: {
-    color: '#000',
+    color: '#A37D5D',
     fontSize: 18,
     fontWeight: '600'
   }

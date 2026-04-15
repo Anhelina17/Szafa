@@ -9,7 +9,7 @@ const folders = [
     { name: "krótki rękaw", path: "/wardrobe/top/shortsleeves" },
     { name: "na ramiączka", path: "/wardrobe/top/nosleeves" },
     { name: "swetry", path: "/wardrobe/top/sweaters" },
-    { name: "kurtki", path: "/wardrobe/top/jakcets" },
+    { name: "kurtki", path: "/wardrobe/top/jackets" },
     { name: "sukienki", path: "/wardrobe/top/dresses" },
   ];
 

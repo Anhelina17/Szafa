@@ -11,9 +11,12 @@ export default function HomeScreen() {
       <Text style={styles.subtitle}>Twoja wirtualna szafa</Text>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Dodaj ubrania</Text>
-        </TouchableOpacity>
+        <TouchableOpacity
+  style={styles.button}
+  onPress={() => setShowMenu(true)}
+>
+  <Text style={styles.buttonText}>Dodaj ubrania</Text>
+</TouchableOpacity>
 
         <TouchableOpacity style={styles.button} onPress={()=> router.push("/wardrobe/wardrobe")}>
           <Text style={styles.buttonText}>Zobacz szafę</Text>
@@ -35,21 +38,16 @@ export default function HomeScreen() {
         <Text style={styles.profileText}>Profil</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-  style={styles.plus}
-  onPress={() => setShowMenu(true)}
->
-  <Text style={styles.plusText}>+</Text>
-</TouchableOpacity>
-{showMenu && (
-  <View style={styles.menuOverlay}>
-    <View style={styles.menuBox}>
-      <TouchableOpacity
-        style={styles.menuItem}
-        onPress={() => {
-          setShowMenu(false);
-          router.push("/camera");
-        }}
+      
+        {showMenu && (
+      <View style={styles.menuOverlay}>
+        <View style={styles.menuBox}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => {
+            setShowMenu(false);
+            router.push("/camera");
+          }}
       >
         <Text style={styles.menuText}>Otwórz aparat</Text>
       </TouchableOpacity>
@@ -82,7 +80,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#FFFFF",
+    backgroundColor: "#FFFAF6",
     paddingHorizontal: 20,
   },
   title: {
@@ -105,13 +103,19 @@ const styles = StyleSheet.create({
   },
   button: {
     width: "80%",
-    backgroundColor: "#AE847E",
+    backgroundColor: "#A37D5D33",
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#A37D5D33",
+    shadowColor: "#A37D5D",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   buttonText: {
-    color: "#000000",
+    color: "#A37D5D",
     fontSize: 18,
     fontWeight: "600",
   },
@@ -128,26 +132,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  plus: {
-    position: "absolute",
-    bottom: 30,
-    right: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#AE847E",
-    justifyContent: "center",
-    alignItems: "center",
-    elevation: 5, 
-  },
-  
-  plusText: {
-    position: "absolute",
-    bottom: 0.5,
-    fontSize: 60,
-    color: "#fff",
-    fontWeight: "bold",
-  },
+
   menuOverlay: {
   position: "absolute",
   top: 0,
@@ -161,7 +146,7 @@ const styles = StyleSheet.create({
 
 menuBox: {
   width: "100%",
-  backgroundColor: "#fff",
+  backgroundColor: "#FFFAF6",
   paddingVertical: 20,
   borderTopLeftRadius: 20,
   borderTopRightRadius: 20,
@@ -169,18 +154,25 @@ menuBox: {
 },
 
 menuItem: {
-  width: "90%",
-  paddingVertical: 15,
   borderRadius: 10,
-  backgroundColor: "#AE847E",
-  alignItems: "center",
   marginBottom: 10,
+  width: "80%",
+    backgroundColor: "#A37D5D33",
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#A37D5D33",
+    shadowColor: "#A37D5D",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
 },
 
 menuText: {
-  fontSize: 18,
-  fontWeight: "600",
-  color: "#000",
+  color: "#A37D5D",
+    fontSize: 18,
+    fontWeight: "600",
 },
 
 menuCancel: {
