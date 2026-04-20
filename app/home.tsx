@@ -11,23 +11,22 @@ export default function HomeScreen() {
       <Text style={styles.subtitle}>Twoja wirtualna szafa</Text>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity
-  style={styles.button}
-  onPress={() => setShowMenu(true)}
->
-  <Text style={styles.buttonText}>Dodaj ubrania</Text>
-</TouchableOpacity>
-
-        <TouchableOpacity style={styles.button} onPress={()=> router.push("/wardrobe/wardrobe")}>
-          <Text style={styles.buttonText}>Zobacz szafę</Text>
+        <TouchableOpacity style={styles.buttonV1}
+            onPress={() => setShowMenu(true)}
+            >
+          <Text style={styles.buttonV1Text}>Dodaj ubrania</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Stwórz stylizację</Text>
+        <TouchableOpacity style={styles.buttonV2} onPress={()=> router.push("/wardrobe/wardrobe")}>
+          <Text style={styles.buttonV2Text}>Zobacz szafę</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.buttonText}>Zobacz stylizacje</Text>
+        <TouchableOpacity style={styles.buttonV1}>
+          <Text style={styles.buttonV1Text}>Stwórz stylizację</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.buttonV2}>
+          <Text style={styles.buttonV2Text}>Zobacz stylizacje</Text>
         </TouchableOpacity>
       </View>
 
@@ -99,25 +98,47 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     width: "100%",
     alignItems: "center",
-    gap: 15,
+    gap: 1,
   },
-  button: {
-    width: "80%",
-    backgroundColor: "#A37D5D33",
+  buttonV1: {
+    width: '70%',
+    backgroundColor: '#A37D5D',
     paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: "center",
+    borderRadius: 30,
+    alignItems: 'center',
+    marginVertical: 10,
     borderWidth: 1,
-    borderColor: "#A37D5D33",
+    borderColor: "#A37D5D",
     shadowColor: "#A37D5D",
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  buttonText: {
-    color: "#A37D5D",
+  buttonV1Text: {
+    color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '400',
+    fontFamily: "Inter"
+  },
+  buttonV2: {
+    width: '70%',
+    backgroundColor: '##FFFAF6',
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginVertical: 10,
+    borderWidth: 2,
+    borderColor: "#A37D5D",
+    shadowColor: "#A37D5D",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  buttonV2Text: {
+    color: '#A37D5D',
+    fontSize: 18,
+    fontWeight: '400',
+    fontFamily: "Inter"
   },
   profileButton: {
     position: "absolute",
@@ -131,6 +152,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    fontFamily: "Inter"
   },
 
   menuOverlay: {

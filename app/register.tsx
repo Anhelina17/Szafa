@@ -72,8 +72,13 @@ export default function RegisterScreen() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Zarejestruj</Text>
+      <TouchableOpacity style={styles.buttonCont} onPress={handleRegister}>
+        <Text style={styles.buttonContText}>Kontynuuj</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.buttonLog} onPress={() => {
+          router.push("/login");
+        }}>
+        <Text style={styles.buttonLogText}>Masz już konto? Zaloguj się</Text>
       </TouchableOpacity>
     </View>
   );
@@ -89,30 +94,32 @@ const styles = StyleSheet.create({
   },
   title: {
     width: "100%",
-    fontSize: 28,
-    fontWeight: "500",
+    fontSize: 24,
+    fontWeight: "700",
     color: "#202C39",
+    fontFamily: "Inter",
     marginBottom: 25,
     textAlign: "center",
   },
   input: {
-    width: '80%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 15,
+    fontFamily: "Inter",
+    width: '70%',
+    paddingVertical: 15,
+    borderRadius: 30,
+    marginVertical: 10,
+    padding: 16,
+    marginBottom: 10,
     color: '#000',
-    backgroundColor: '#A37D5D22',
+    backgroundColor: '#EDE1D7',
     borderWidth: 1,
-    borderColor: "#A37D5D33",
-    shadowColor: "#A37D5D",
+    borderColor: "#EDE1D7",
+    shadowColor: "#EDE1D7",
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
   passwordContainer: {
-    width: "80%",
+    width: "70%",
     flexDirection: "row",
     alignItems: "center",
   },
@@ -123,21 +130,42 @@ const styles = StyleSheet.create({
     color: "#AE847E",
     fontWeight: "600",
   },
-  button: {
-    backgroundColor: '#A37D5D33',
+  buttonContText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '400'
+  },
+  buttonCont: {
+    width: '70%',
+    backgroundColor: '#A37D5D',
     paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 10,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginVertical: 10,
     borderWidth: 1,
-    borderColor: "#A37D5D33",
+    borderColor: "#A37D5D",
     shadowColor: "#A37D5D",
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  buttonText: {
+  buttonLog: {
+    width: '70%',
+    backgroundColor: '##FFFAF6',
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginVertical: 10,
+    borderWidth: 2,
+    borderColor: "#A37D5D",
+    shadowColor: "#A37D5D",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  buttonLogText: {
+    color: '#A37D5D',
     fontSize: 18,
-    fontWeight: '600',
-    color: "#A37D5D",
+    fontWeight: '400'
   }
 });

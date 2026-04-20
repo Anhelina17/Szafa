@@ -63,14 +63,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    backgroundColor: "#FFFAF6",
   },
   loading: {
     fontSize: 20,
   },
   title: {
-    fontSize: 32,
-    marginBottom: 40,
-    fontWeight: "600",
+    fontSize: 36,
+    fontWeight: "bold",
+    fontFamily: "Helvetica",
+    color: "#202C39",
+    marginBottom: 5,
   },
   infoBox: {
     width: "80%",
@@ -78,18 +81,20 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: "#555",
+    color: "#A37D5D",
   },
   value: {
     fontSize: 20,
     fontWeight: "500",
+    color: "#202C39",
   },
   logoutButton: {
-    marginTop: 40,
-    backgroundColor: "#AE847E",
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 10,
+    position: "absolute",
+    bottom: 40,
+    backgroundColor: "#2c3e50",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 30,
   },
   logoutText: {
     fontSize: 18,

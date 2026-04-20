@@ -26,18 +26,23 @@ export default function LoginScreen() {
       <TextInput 
       style={styles.input} 
       placeholder="Email" 
-      placeholderTextColor='#525252' 
+      placeholderTextColor='#9D9D9D' 
       onChangeText={setEmail} />
       
       <TextInput 
       style={styles.input} 
       placeholder="Hasło" 
-      placeholderTextColor='#525252' 
+      placeholderTextColor='#9D9D9D' 
       secureTextEntry 
       onChangeText={setPassword} />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Zaloguj</Text>
+      <TouchableOpacity style={styles.buttonCont} onPress={handleLogin}>
+        <Text style={styles.buttonContText}>Kontynuuj</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.buttonBack} onPress={() => {
+          router.push("/register");
+        }}>
+        <Text style={styles.buttonBackText}>Wróć do rejestracji</Text>
       </TouchableOpacity>
     </View>
   );
@@ -54,43 +59,68 @@ const styles = StyleSheet.create({
   },
   title: {
     width: "100%",
-    fontSize: 28,
-    fontWeight: "500",
+    fontSize: 24,
+    fontWeight: "700",
     color: "#202C39",
+    fontFamily: "Inter",
     marginBottom: 25,
     textAlign: "center",
   },
   input: {
-    width: '80%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 15,
-    color: '#000',
-    backgroundColor: '#A37D5D22',
-    borderWidth: 1,
-    borderColor: "#A37D5D33",
-    shadowColor: "#A37D5D",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  button: {
-    backgroundColor: '#A37D5D33',
+    fontFamily: "Inter",
+    width: '70%',
     paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 10,
+    borderRadius: 30,
+    marginVertical: 10,
+    padding: 16,
+    marginBottom: 10,
+    color: '#000',
+    backgroundColor: '#EDE1D7',
     borderWidth: 1,
-    borderColor: "#A37D5D33",
+    borderColor: "#EDE1D7",
+    shadowColor: "#EDE1D7",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  buttonCont: {
+    width: '70%',
+    backgroundColor: '#A37D5D',
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: "#A37D5D",
     shadowColor: "#A37D5D",
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  buttonText: {
+  buttonContText: {
+    color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '600',
-    color: "#A37D5D",
+    fontWeight: '400',
+    fontFamily: "Inter"
+  },
+  buttonBack: {
+    width: '70%',
+    backgroundColor: '##FFFAF6',
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginVertical: 10,
+    borderWidth: 2,
+    borderColor: "#A37D5D",
+    shadowColor: "#A37D5D",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  buttonBackText: {
+    color: '#A37D5D',
+    fontSize: 18,
+    fontWeight: '400',
+    fontFamily: "Inter"
   }
 });

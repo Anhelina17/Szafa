@@ -6,15 +6,15 @@ export default function StartScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Szafa</Text>
-      <Text style={styles.subtitle}>Twoja wirtualna szafa</Text>
+      <Text style={styles.title}>Otwórz swoją Szafę</Text>
+      <Text style={styles.subtitle}>Dodawaj ubrania i twórz stylizacje</Text>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/login")}>
-        <Text style={styles.buttonText}>Logowanie</Text>
+      <TouchableOpacity style={styles.buttonLog} onPress={() => router.push("/login")}>
+        <Text style={styles.buttonLogText}>Zaloguj się</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/register")}>
-        <Text style={styles.buttonText}>Rejestracja</Text>
+      <TouchableOpacity style={styles.buttonReg} onPress={() => router.push("/register")}>
+        <Text style={styles.buttonRegText}>Zarejestruj się</Text>
       </TouchableOpacity>
     </View>
   );
@@ -30,33 +30,57 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20
   },
   title: {
-    fontSize: 42,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#202C39',
+    fontFamily: "Inter",
     marginBottom: 10
   },
   subtitle: {
     fontSize: 18,
+    fontWeight: '400',
     color: '#202C39',
+    fontFamily: "Inter",
     marginBottom: 40
   },
-  button: {
+  buttonLog: {
     width: '70%',
-    backgroundColor: '#A37D5D33',
+    backgroundColor: '#A37D5D',
     paddingVertical: 15,
-    borderRadius: 10,
+    borderRadius: 30,
     alignItems: 'center',
     marginVertical: 10,
     borderWidth: 1,
-    borderColor: "#A37D5D33",
+    borderColor: "#A37D5D",
     shadowColor: "#A37D5D",
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
   },
-  buttonText: {
+  buttonLogText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontFamily: "Inter",
+    fontWeight: '400'
+  },
+  buttonReg: {
+    width: '70%',
+    backgroundColor: '##FFFAF6',
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: 'center',
+    marginVertical: 10,
+    borderWidth: 2,
+    borderColor: "#A37D5D",
+    shadowColor: "#A37D5D",
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  buttonRegText: {
     color: '#A37D5D',
     fontSize: 18,
-    fontWeight: '600'
+    fontFamily: "Inter",
+    fontWeight: '400'
   }
 });
