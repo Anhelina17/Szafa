@@ -1,38 +1,61 @@
 import * as ImageManipulator from "expo-image-manipulator";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
 import { useBackgroundRemoval } from "../hooks/use-backgroundRemoval";
-import { supabase } from "../supabaseClient";
+import { saveImage } from "../services/images";
 
 export default function PhotoPreviewScreen() {
   const { uri } = useLocalSearchParams<{ uri: string }>();
   const router = useRouter();
+
   const { isLoading, error, resultUri, process, reset } =
     useBackgroundRemoval();
-const convertIfHeic = async (uri: string) => {
-  if (!uri.toLowerCase().endsWith(".heic")) {
-    return uri; 
-  }
 
-  const manipulated = await ImageManipulator.manipulateAsync(
-    uri,
-    [],
-    { compress: 1, format: ImageManipulator.SaveFormat.PNG }
-  );
+  const convertIfHeic = async (uri: string) => {
+    if (!uri.toLowerCase().endsWith(".heic")) {
+      return uri;
+    }
 
-  return manipulated.uri;
-};
+    const manipulated = await ImageManipulator.manipulateAsync(
+      uri,
+      [],
+      { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+    );
+
+    return manipulated.uri;
+  };
 
   const handleConfirm = async () => {
-  const safeUri = await convertIfHeic(uri);
-  process(safeUri);
-};
+    const safeUri = await convertIfHeic(uri);
+    process(safeUri);
+  };
 
   const handleDiscard = () => {
     reset();
     router.back();
   };
 
+  const handleSave = async () => {
+    try {
+      if (!resultUri) return;
+
+      const image = await saveImage(resultUri);
+
+      router.push(`/selectFolder?imageId=${image.id}`);
+    } catch (err) {
+      console.log(err);
+      alert("Błąd zapisu");
+    }
+  };
+
+  // 🔥 PO USUNIĘCIU TŁA
   if (resultUri) {
     return (
       <View style={{ flex: 1, backgroundColor: "#888" }}>
@@ -41,50 +64,13 @@ const convertIfHeic = async (uri: string) => {
           style={{ flex: 1 }}
           resizeMode="contain"
         />
+
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.button} onPress={handleDiscard}>
             <Text style={styles.buttonText}>Odrzuć</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={async () => {
-                try {
-                  if (!resultUri) return;
-              
-                  console.log("Dodajemy zdjęcie...");
-              
-                  
-                  const response = await fetch(resultUri);
-                  const blob = await response.blob();
-              
-                  
-                  const fileName = `clothes/item-${Date.now()}.png`;
 
-              
-                  
-                  const { data, error } = await supabase.storage
-                    .from("clothes")
-                    .upload(fileName, blob, {
-                      contentType: "image/png",
-                    });
-              
-                  if (error) {
-                    console.log("UPLOAD ERROR:", error);
-                    alert("Błąd zapisania zdjęcia");
-                    return;
-                  }
-              
-                  console.log("UDANY UPLOAD:", data);
-              
-                  alert("Zdjęcie zostało zapisane");
-                  router.back();
-              
-                } catch (err) {
-                  console.log(err);
-                  alert("Błąd zapisu");
-                }
-              }}
-          >
+          <TouchableOpacity style={styles.button} onPress={handleSave}>
             <Text style={styles.buttonText}>Zapisz</Text>
           </TouchableOpacity>
         </View>
@@ -92,11 +78,11 @@ const convertIfHeic = async (uri: string) => {
     );
   }
 
+  // 🔵 PRZED USUNIĘCIEM TŁA
   return (
     <View style={{ flex: 1 }}>
       <Image source={{ uri }} style={{ flex: 1 }} resizeMode="contain" />
 
-      
       {isLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="white" />
@@ -118,6 +104,7 @@ const convertIfHeic = async (uri: string) => {
         >
           <Text style={styles.buttonText}>Wróć</Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.button}
           onPress={handleConfirm}
