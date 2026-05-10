@@ -1,6 +1,6 @@
 import { supabase } from "../supabaseClient";
 
-// 🔥 pobieranie folderów użytkownika
+
 export const getFolders = async () => {
   const { data } = await supabase.auth.getUser();
   const user = data.user;

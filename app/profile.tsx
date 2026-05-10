@@ -37,9 +37,8 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Twój profil</Text>
-
+    <View style={styles.container}>{/**/}
+  
       <View style={styles.infoBox}>
         <Text style={styles.label}>Imię:</Text>
         <Text style={styles.value}>{user.user_metadata?.name}</Text>

@@ -1,10 +1,10 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { getFolders } from "../services/folders";
 import { addImageToFolders } from "../services/images";
@@ -13,7 +13,6 @@ export default function SelectFolderScreen() {
   const router = useRouter();
   const { imageId } = useLocalSearchParams<{ imageId: string }>();
 
-  // 🔥 FIX: zabezpieczenie na tablicę
   const safeImageId = Array.isArray(imageId) ? imageId[0] : imageId;
 
   const [folders, setFolders] = useState<any[]>([]);
@@ -51,7 +50,6 @@ export default function SelectFolderScreen() {
 
       alert("Zdjęcie dodane do folderów");
 
-      // 🔥 reset (opcjonalnie ale dobrze mieć)
       setSelected([]);
 
       router.replace("/wardrobe/wardrobe");
@@ -63,7 +61,7 @@ export default function SelectFolderScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Wybierz foldery</Text>
+      {/*<Text style={styles.title}>Wybierz foldery</Text>/*/}
 
       {folders.map((folder) => {
         const isSelected = selected.includes(folder.id);

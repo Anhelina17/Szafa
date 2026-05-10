@@ -22,13 +22,11 @@ export default function PhotoPreviewScreen() {
     if (!uri.toLowerCase().endsWith(".heic")) {
       return uri;
     }
-
     const manipulated = await ImageManipulator.manipulateAsync(
       uri,
       [],
       { compress: 1, format: ImageManipulator.SaveFormat.PNG }
     );
-
     return manipulated.uri;
   };
 
@@ -45,9 +43,7 @@ export default function PhotoPreviewScreen() {
   const handleSave = async () => {
     try {
       if (!resultUri) return;
-
       const image = await saveImage(resultUri);
-
       router.push(`/selectFolder?imageId=${image.id}`);
     } catch (err) {
       console.log(err);
@@ -55,7 +51,17 @@ export default function PhotoPreviewScreen() {
     }
   };
 
-  // 🔥 PO USUNIĘCIU TŁA
+  // Pełnoekranowy widok ładowania — zakrywa nagłówek
+  if (isLoading) {
+    return (
+      <View style={styles.loadingFullScreen}>
+        <ActivityIndicator size="large" color="#A37D5D" />
+        <Text style={styles.loadingText}>Usuwanie tła...</Text>
+      </View>
+    );
+  }
+
+  // Ekran po usunięciu tła
   if (resultUri) {
     return (
       <View style={{ flex: 1, backgroundColor: "#888" }}>
@@ -64,12 +70,10 @@ export default function PhotoPreviewScreen() {
           style={{ flex: 1 }}
           resizeMode="contain"
         />
-
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.button} onPress={handleDiscard}>
             <Text style={styles.buttonText}>Odrzuć</Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.button} onPress={handleSave}>
             <Text style={styles.buttonText}>Zapisz</Text>
           </TouchableOpacity>
@@ -78,17 +82,10 @@ export default function PhotoPreviewScreen() {
     );
   }
 
-  // 🔵 PRZED USUNIĘCIEM TŁA
+  // Ekran podglądu przed usunięciem tła
   return (
     <View style={{ flex: 1 }}>
       <Image source={{ uri }} style={{ flex: 1 }} resizeMode="contain" />
-
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="white" />
-          <Text style={styles.loadingText}>Usuwanie tła...</Text>
-        </View>
-      )}
 
       {error && (
         <View style={styles.errorBanner}>
@@ -97,18 +94,10 @@ export default function PhotoPreviewScreen() {
       )}
 
       <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleDiscard}
-          disabled={isLoading}
-        >
-          <Text style={styles.buttonText}>Wróć</Text>
-        </TouchableOpacity>
-
+        
         <TouchableOpacity
           style={styles.button}
           onPress={handleConfirm}
-          disabled={isLoading}
         >
           <Text style={styles.buttonText}>OK</Text>
         </TouchableOpacity>
@@ -136,20 +125,17 @@ const styles = StyleSheet.create({
     color: "black",
     fontSize: 18,
   },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
+  loadingFullScreen: {
+    flex: 1,
+    backgroundColor: "#FFFAF6",
     justifyContent: "center",
     alignItems: "center",
   },
   loadingText: {
-    color: "white",
+    color: "#A37D5D",
     marginTop: 12,
     fontSize: 16,
+    fontWeight: "600",
   },
   errorBanner: {
     position: "absolute",

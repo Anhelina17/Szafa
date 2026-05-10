@@ -15,7 +15,7 @@ export default function FavoritesScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Ulubione</Text>
+    
 
       <TouchableOpacity
         activeOpacity={1}

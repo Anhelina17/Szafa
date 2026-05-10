@@ -181,7 +181,6 @@ menuItem: {
   width: "80%",
     backgroundColor: "#A37D5D33",
     paddingVertical: 15,
-    borderRadius: 10,
     alignItems: "center",
     borderWidth: 1,
     borderColor: "#A37D5D33",

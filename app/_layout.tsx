@@ -8,5 +8,29 @@ export default function RootLayout() {
 
   if (!loaded) return null;
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: "#FFFAF6" },
+        headerTintColor: "#A37D5D",
+        headerTitleStyle: { fontWeight: "700", fontFamily: "Inter" },
+        headerBackTitle: "Wróć",
+        headerShadowVisible: false,
+      }}
+    >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="register" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="home" options={{ headerShown: false }} />
+      <Stack.Screen name="camera" options={{ title: "Aparat" }} />
+      <Stack.Screen name="photoPreview" options={{ title: "Podgląd zdjęcia" }} />
+      <Stack.Screen name="selectFolder" options={{ title: "Wybierz folder" }} />
+      <Stack.Screen name="galleryPicker" options={{ title: "Galeria" }} />
+      <Stack.Screen name="profile" options={{ title: "Profil" }} />
+      <Stack.Screen name="wardrobe/wardrobe" options={{ title: "Twoja szafa" }} />
+      <Stack.Screen name="wardrobe/folderView" options={{ title: "" }} />
+      <Stack.Screen name="wardrobe/favorites/favorites" options={{ title: "Ulubione" }} />
+    </Stack>
+  );
 }

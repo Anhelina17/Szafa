@@ -4,11 +4,11 @@ export const saveImage = async (uri: string) => {
   try {
     const fileName = `item-${Date.now()}.png`;
 
-    // Pobieramy zalogowanego użytkownika
+    
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error("Brak użytkownika");
 
-    // Używamy fetch z arrayBuffer
+    
     const response = await fetch(uri);
     const arrayBuffer = await response.arrayBuffer();
 
@@ -33,7 +33,6 @@ export const saveImage = async (uri: string) => {
     const imageUrl = publicUrlData.publicUrl;
     console.log("IMAGE URL:", imageUrl);
 
-    // Zapisujemy URL i user_id do tabeli images
     const { data: imageData, error: dbError } = await supabase
       .from("images")
       .insert({
@@ -72,7 +71,7 @@ export const addImageToFolders = async (
   }
 };
 
-// Pobiera wszystkie zdjęcia z danego folderu
+
 export const getImagesByFolder = async (folderId: string) => {
     const { data, error } = await supabase
       .from("image_folders")
@@ -83,7 +82,6 @@ export const getImagesByFolder = async (folderId: string) => {
       console.log("GET IMAGES ERROR:", error);
       throw error;
     }
-  
-    // Wyciągamy zdjęcia z zagnieżdżonej struktury
+
     return data?.map((item: any) => item.images).filter(Boolean) ?? [];
   };

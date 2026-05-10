@@ -41,9 +41,9 @@ export default function WardrobeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Twoja szafa</Text>
+    
 
-      {/* Folder "Ulubione" zawsze na górze — specjalny */}
+      {/* Folder "Ulubione" wyświetla się zawsze na górze listy */}
       <TouchableOpacity
         style={styles.folder}
         onPress={() => router.push("/wardrobe/favorites/favorites")}
@@ -52,7 +52,7 @@ export default function WardrobeScreen() {
         <Text style={styles.folderText}>Ulubione</Text>
       </TouchableOpacity>
 
-      {/* Foldery użytkownika z Supabase */}
+      {/* Foldery stworzone przez użytkownika */}
       <FlatList
         data={folders}
         keyExtractor={(item) => item.id}

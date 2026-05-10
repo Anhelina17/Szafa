@@ -21,7 +21,7 @@ export default function RegisterScreen() {
       email,
       password,
       options: {
-        data: { name }, // zapisujemy imię w user_metadata
+        data: { name }, 
       },
     });
 
@@ -30,7 +30,7 @@ export default function RegisterScreen() {
       return;
     }
 
-    // Po rejestracji → przejście do logowania
+  
     router.replace("/login");
   };
 
