@@ -2,13 +2,15 @@ import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View
 } from "react-native";
-import { getImagesByFolder } from "../../services/images";
+import { deleteImage, getImagesByFolder } from "../../services/images";
 
 export default function FolderViewScreen() {
   const { folderId, folderName } = useLocalSearchParams<{
@@ -21,7 +23,6 @@ export default function FolderViewScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  
   useEffect(() => {
     navigation.setOptions({
       title: folderName ?? "Folder",
@@ -29,20 +30,63 @@ export default function FolderViewScreen() {
   }, [folderName]);
 
   useEffect(() => {
-    const loadImages = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getImagesByFolder(folderId);
-        setImages(data);
-      } catch (e) {
-        setError("Nie udało się załadować zdjęć");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     if (folderId) loadImages();
   }, [folderId]);
+
+  const loadImages = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getImagesByFolder(folderId);
+      setImages(data);
+    } catch (e) {
+      setError("Nie udało się załadować zdjęć");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLongPress = (item: any) => {
+    Alert.alert(
+      "Opcje zdjęcia",
+      "Co chcesz zrobić z tym zdjęciem?",
+      [
+        {
+          text: "Usuń zdjęcie",
+          style: "destructive",
+          onPress: () => handleDelete(item),
+        },
+        {
+          text: "Anuluj",
+          style: "cancel",
+        },
+      ]
+    );
+  };
+
+  const handleDelete = (item: any) => {
+    Alert.alert(
+      "Usuń zdjęcie",
+      "Czy na pewno chcesz usunąć to zdjęcie? Zostanie usunięte ze wszystkich folderów.",
+      [
+        {
+          text: "Anuluj",
+          style: "cancel",
+        },
+        {
+          text: "Usuń",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteImage(item.id, item.image_url);
+              await loadImages();
+            } catch (e) {
+              Alert.alert("Błąd", "Nie udało się usunąć zdjęcia");
+            }
+          },
+        },
+      ]
+    );
+  };
 
   if (isLoading) {
     return (
@@ -73,11 +117,17 @@ export default function FolderViewScreen() {
           numColumns={2}
           columnWrapperStyle={styles.row}
           renderItem={({ item }) => (
-            <Image
-              source={{ uri: item.image_url }}
-              style={styles.image}
-              resizeMode="contain"
-            />
+            <TouchableOpacity
+              style={styles.imageContainer}
+              onLongPress={() => handleLongPress(item)}
+              delayLongPress={500}
+            >
+              <Image
+                source={{ uri: item.image_url }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
           )}
         />
       )}
@@ -101,11 +151,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 12,
   },
-  image: {
+  imageContainer: {
     width: "48%",
     aspectRatio: 1,
     borderRadius: 12,
     backgroundColor: "#f0ebe5",
+    overflow: "hidden",
+  },
+  image: {
+    width: "100%",
+    height: "100%",
   },
   emptyText: {
     color: "#A37D5D",
