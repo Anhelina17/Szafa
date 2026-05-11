@@ -4,11 +4,9 @@ export const saveImage = async (uri: string) => {
   try {
     const fileName = `item-${Date.now()}.png`;
 
-    
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) throw new Error("Brak użytkownika");
 
-    
     const response = await fetch(uri);
     const arrayBuffer = await response.arrayBuffer();
 
@@ -71,17 +69,60 @@ export const addImageToFolders = async (
   }
 };
 
-
 export const getImagesByFolder = async (folderId: string) => {
-    const { data, error } = await supabase
-      .from("image_folders")
-      .select("images(id, image_url)")
-      .eq("folder_id", folderId);
-  
-    if (error) {
-      console.log("GET IMAGES ERROR:", error);
-      throw error;
-    }
+  const { data, error } = await supabase
+    .from("image_folders")
+    .select("images(id, image_url)")
+    .eq("folder_id", folderId);
 
-    return data?.map((item: any) => item.images).filter(Boolean) ?? [];
-  };
+  if (error) {
+    console.log("GET IMAGES ERROR:", error);
+    throw error;
+  }
+
+  return data?.map((item: any) => item.images).filter(Boolean) ?? [];
+};
+
+
+export const deleteImage = async (imageId: string, imageUrl: string) => {
+  console.log("Usuwam powiązania zdjęcia:", imageId);
+
+  // Usuwanie powiązania z folderami
+  const { error: relationsError } = await supabase
+    .from("image_folders")
+    .delete()
+    .eq("image_id", imageId);
+
+  if (relationsError) {
+    console.log("RELATIONS ERROR:", JSON.stringify(relationsError));
+    throw relationsError;
+  }
+
+  console.log("Powiązania usunięte, usuwam rekord...");
+
+  const { error: dbError } = await supabase
+    .from("images")
+    .delete()
+    .eq("id", imageId);
+
+  if (dbError) {
+    console.log("DB ERROR:", JSON.stringify(dbError));
+    throw dbError;
+  }
+
+  console.log("Rekord usunięty, usuwam plik ze Storage...");
+
+  const fileName = imageUrl.split("/").pop();
+  if (fileName) {
+    const { error: storageError } = await supabase.storage
+      .from("clothes")
+      .remove([fileName]);
+
+    if (storageError) {
+     
+      console.log("STORAGE ERROR:", JSON.stringify(storageError));
+    }
+  }
+
+  console.log("Zdjęcie usunięte!");
+};

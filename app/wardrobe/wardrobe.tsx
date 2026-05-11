@@ -2,34 +2,111 @@ import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View
 } from "react-native";
 import FavoritesIcon from "../../assets/icons/icon_favorites.svg";
-import { getFolders } from "../../services/folders";
+import { deleteFolder, getFolders, renameFolder } from "../../services/folders";
+
 
 export default function WardrobeScreen() {
   const router = useRouter();
   const [folders, setFolders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { height } = useWindowDimensions();
+
+
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState<any>(null);
+  const [newFolderName, setNewFolderName] = useState("");
 
   useEffect(() => {
-    const loadFolders = async () => {
-      try {
-        const data = await getFolders();
-        setFolders(data ?? []);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadFolders();
   }, []);
+
+  const loadFolders = async () => {
+    try {
+      const data = await getFolders();
+      setFolders(data ?? []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLongPress = (folder: any) => {
+    Alert.alert(
+      folder.name,
+      "Co chcesz zrobić z tym folderem?",
+      [
+        {
+          text: "Zmień nazwę",
+          onPress: () => {
+            setSelectedFolder(folder);
+            setNewFolderName(folder.name);
+            setRenameModalVisible(true);
+          },
+        },
+        {
+          text: "Usuń folder",
+          style: "destructive",
+          onPress: () => handleDelete(folder),
+        },
+        {
+          text: "Anuluj",
+          style: "cancel",
+        },
+      ]
+    );
+  };
+  
+  const handleDelete = (folder: any) => {
+    Alert.alert(
+      "Usuń folder",
+      `Czy na pewno chcesz usunąć folder "${folder.name}"? Zdjęcia nie zostaną usunięte.`,
+      [
+        {
+          text: "Anuluj",
+          style: "cancel",
+        },
+        {
+          text: "Usuń",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteFolder(folder.id);
+              
+              await loadFolders();
+            } catch (e) {
+              Alert.alert("Błąd", "Nie udało się usunąć folderu");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleRenameConfirm = async () => {
+    if (!newFolderName.trim() || !selectedFolder) return;
+    try {
+      await renameFolder(selectedFolder.id, newFolderName.trim());
+      setRenameModalVisible(false);
+      setSelectedFolder(null);
+      await loadFolders();
+    } catch (e) {
+      Alert.alert("Błąd", "Nie udało się zmienić nazwy folderu");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -41,9 +118,7 @@ export default function WardrobeScreen() {
 
   return (
     <View style={styles.container}>
-    
-
-      {/* Folder "Ulubione" wyświetla się zawsze na górze listy */}
+      {/* Folder "Ulubione" zawsze na górze */}
       <TouchableOpacity
         style={styles.folder}
         onPress={() => router.push("/wardrobe/favorites/favorites")}
@@ -52,7 +127,7 @@ export default function WardrobeScreen() {
         <Text style={styles.folderText}>Ulubione</Text>
       </TouchableOpacity>
 
-      {/* Foldery stworzone przez użytkownika */}
+      {/* Foldery użytkownika — long press otwiera menu */}
       <FlatList
         data={folders}
         keyExtractor={(item) => item.id}
@@ -67,11 +142,57 @@ export default function WardrobeScreen() {
                 params: { folderId: item.id, folderName: item.name },
               })
             }
+            onLongPress={() => handleLongPress(item)}
+            delayLongPress={500}
           >
             <Text style={styles.folderText}>{item.name}</Text>
           </TouchableOpacity>
         )}
       />
+
+      
+      <Modal
+        visible={renameModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setRenameModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>Zmień nazwę folderu</Text>
+
+              <TextInput
+                style={styles.modalInput}
+                value={newFolderName}
+                onChangeText={setNewFolderName}
+                placeholder="Nowa nazwa"
+                placeholderTextColor="#aaa"
+                autoFocus
+              />
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.modalButtonCancel}
+                  onPress={() => setRenameModalVisible(false)}
+                >
+                  <Text style={styles.modalButtonCancelText}>Anuluj</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.modalButtonConfirm}
+                  onPress={handleRenameConfirm}
+                >
+                  <Text style={styles.modalButtonConfirmText}>Zapisz</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -80,7 +201,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFAF6",
-    paddingTop: 40,
+    paddingTop: 16,
     paddingHorizontal: 16,
   },
   center: {
@@ -91,14 +212,6 @@ const styles = StyleSheet.create({
   row: {
     justifyContent: "space-between",
     marginBottom: 12,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#202C39",
-    marginBottom: 25,
-    marginTop: 16,
-    textAlign: "center",
   },
   folder: {
     width: "48%",
@@ -116,5 +229,64 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#A37D5D",
     marginTop: 6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    paddingBottom: 40,
+  },
+  modalBox: {
+    backgroundColor: "#FFFAF6",
+    borderRadius: 16,
+    padding: 24,
+    width: "80%",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#202C39",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: "#D8CFC4",
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+    color: "#202C39",
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  modalButtonCancel: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#A37D5D",
+    alignItems: "center",
+  },
+  modalButtonCancelText: {
+    color: "#A37D5D",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  modalButtonConfirm: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#A37D5D",
+    alignItems: "center",
+  },
+  modalButtonConfirmText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });

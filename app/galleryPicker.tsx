@@ -8,7 +8,7 @@ export default function GalleryPickerScreen() {
 
   useEffect(() => {
     (async () => {
-      // Zapytaj o uprawnienia
+      
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (status !== "granted") {
@@ -17,7 +17,7 @@ export default function GalleryPickerScreen() {
         return;
       }
 
-      // Otwórz galerię
+      
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
