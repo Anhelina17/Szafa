@@ -72,7 +72,7 @@ export const addImageToFolders = async (
 export const getImagesByFolder = async (folderId: string) => {
   const { data, error } = await supabase
     .from("image_folders")
-    .select("images(id, image_url)")
+    .select("images(id, image_url, is_favorite)")
     .eq("folder_id", folderId);
 
   if (error) {
@@ -83,11 +83,9 @@ export const getImagesByFolder = async (folderId: string) => {
   return data?.map((item: any) => item.images).filter(Boolean) ?? [];
 };
 
-
 export const deleteImage = async (imageId: string, imageUrl: string) => {
   console.log("Usuwam powiązania zdjęcia:", imageId);
 
-  // Usuwanie powiązania z folderami
   const { error: relationsError } = await supabase
     .from("image_folders")
     .delete()
@@ -119,10 +117,40 @@ export const deleteImage = async (imageId: string, imageUrl: string) => {
       .remove([fileName]);
 
     if (storageError) {
-     
       console.log("STORAGE ERROR:", JSON.stringify(storageError));
     }
   }
 
   console.log("Zdjęcie usunięte!");
+};
+
+// Proce przełączenia pomiędzy ulubione/nie ulubione
+export const toggleFavorite = async (imageId: string, currentValue: boolean) => {
+  const { error } = await supabase
+    .from("images")
+    .update({ is_favorite: !currentValue })
+    .eq("id", imageId);
+
+  if (error) {
+    console.log("TOGGLE FAVORITE ERROR:", JSON.stringify(error));
+    throw error;
+  }
+};
+
+export const getFavoriteImages = async () => {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) throw new Error("Brak użytkownika");
+
+  const { data, error } = await supabase
+    .from("images")
+    .select("id, image_url, is_favorite")
+    .eq("user_id", userData.user.id)
+    .eq("is_favorite", true);
+
+  if (error) {
+    console.log("GET FAVORITES ERROR:", JSON.stringify(error));
+    throw error;
+  }
+
+  return data ?? [];
 };

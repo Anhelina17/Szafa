@@ -1,63 +1,90 @@
-import { useState } from "react";
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from "react-native";
+import { getFavoriteImages, toggleFavorite } from "../../../services/images";
 
 export default function FavoritesScreen() {
-  const [search, setSearch] = useState("");
-  const [showTags, setShowTags] = useState(false);
+  const [images, setImages] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const tags: string[] = [];
-
-  const filteredTags = tags.filter((t) =>
-    t.toLowerCase().includes(search.toLowerCase())
+  // useFocusEffect odświeża listę gdy wracamy na ten ekran
+  useFocusEffect(
+    useCallback(() => {
+      loadFavorites();
+    }, [])
   );
 
-  const noTags = tags.length === 0;
+  const loadFavorites = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getFavoriteImages();
+      setImages(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleToggleFavorite = async (item: any) => {
+    try {
+      await toggleFavorite(item.id, item.is_favorite ?? false);
+      // Usuwamy zdjęcie z listy gdy odznaczamy ulubione
+      setImages((prev) => prev.filter((img) => img.id !== item.id));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#A37D5D" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-    
-
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={() => setShowTags(true)}
-        style={styles.searchContainer}
-      >
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Szukaj po tagach..."
-          placeholderTextColor="#777"
-          value={search}
-          onChangeText={setSearch}
-          onFocus={() => setShowTags(true)}
-        />
-      </TouchableOpacity>
-
-{showTags && (
-        <View style={styles.tagsBox}>
-          {noTags ? (
-            <Text style={styles.noTags}>
-              *Nie utworzono żadnych tagów*
-            </Text>
-          ) : filteredTags.length === 0 ? (
-            <Text style={styles.noTags}>Brak pasujących tagów</Text>
-          ) : (
-            <FlatList
-              data={filteredTags}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.tagItem}>
-                  <Text style={styles.tagText}>{item}</Text>
-                </TouchableOpacity>
-              )}
-            />
+      {images.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={styles.emptyText}>Brak ulubionych zdjęć</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={images}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          renderItem={({ item }) => (
+            <View style={styles.imageContainer}>
+              <Image
+                source={{ uri: item.image_url }}
+                style={styles.image}
+                resizeMode="cover"
+              />
+              <TouchableOpacity
+                style={styles.heartButton}
+                onPress={() => handleToggleFavorite(item)}
+>
+                <Ionicons
+                  name="heart"
+                  size={22}
+                  color="#A37D5D"
+                />
+              </TouchableOpacity>
+            </View>
           )}
-        </View>
-      )}
-
-{!showTags && (
-        <View style={styles.emptyBox}>
-          <Text style={styles.emptyText}>Brak ulubionych elementów</Text>
-        </View>
+        />
       )}
     </View>
   );
@@ -66,57 +93,41 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    paddingTop: 80,
+    backgroundColor: "#FFFAF6",
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
   },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#202C39",
-    marginBottom: 30,
+  row: {
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
-  searchContainer: {
-    width: "85%",
-    backgroundColor: "#F2F2F2",
+  imageContainer: {
+    width: "48%",
+    aspectRatio: 1,
     borderRadius: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    marginBottom: 20,
+    backgroundColor: "#f0ebe5",
+    overflow: "hidden",
   },
-  searchInput: {
+  image: {
+    width: "100%",
+    height: "100%",
+  },
+  heartButton: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderRadius: 20,
+    padding: 4,
+  },
+ 
+  emptyText: {
+    color: "#A37D5D",
     fontSize: 16,
-    color: "#000",
-  },
-tagsBox: {
-    width: "85%",
-    maxHeight: 250,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-  },
-  tagItem: {
-    paddingVertical: 10,
-    paddingHorizontal: 5,
-  },
-  tagText: {
-    fontSize: 18,
-    color: "#202C39",
-  },
-  noTags: {
-    fontSize: 16,
-    color: "#777",
-    fontStyle: "italic",
-    textAlign: "center",
-    paddingVertical: 20,
-  },
-  emptyBox: {
-    marginTop: 40,
-  },
-emptyText: {
-    fontSize: 18,
-    color: "#777",
   },
 });

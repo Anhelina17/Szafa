@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -10,7 +11,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { deleteImage, getImagesByFolder } from "../../services/images";
+import { deleteImage, getImagesByFolder, toggleFavorite } from "../../services/images";
 
 export default function FolderViewScreen() {
   const { folderId, folderName } = useLocalSearchParams<{
@@ -42,6 +43,22 @@ export default function FolderViewScreen() {
       setError("Nie udało się załadować zdjęć");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleToggleFavorite = async (item: any) => {
+    try {
+      await toggleFavorite(item.id, item.is_favorite ?? false);
+      // Aktualizujemy stan lokalnie żeby serduszko od razu się zmieniło
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === item.id
+            ? { ...img, is_favorite: !img.is_favorite }
+            : img
+        )
+      );
+    } catch (e) {
+      Alert.alert("Błąd", "Nie udało się zmienić ulubionych");
     }
   };
 
@@ -127,6 +144,16 @@ export default function FolderViewScreen() {
                 style={styles.image}
                 resizeMode="cover"
               />
+              <TouchableOpacity
+               style={styles.heartButton}
+               onPress={() => handleToggleFavorite(item)}
+              >
+               <Ionicons
+                 name={item.is_favorite ? "heart" : "heart-outline"}
+                 size={22}
+                 color="#A37D5D"
+               />
+              </TouchableOpacity>
             </TouchableOpacity>
           )}
         />
@@ -161,6 +188,14 @@ const styles = StyleSheet.create({
   image: {
     width: "100%",
     height: "100%",
+  },
+  heartButton: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderRadius: 20,
+    padding: 4,
   },
   emptyText: {
     color: "#A37D5D",
