@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -15,8 +16,7 @@ import {
   View
 } from "react-native";
 import FavoritesIcon from "../../assets/icons/icon_favorites.svg";
-import { deleteFolder, getFolders, renameFolder } from "../../services/folders";
-
+import { createFolder, deleteFolder, getFolders, renameFolder } from "../../services/folders";
 
 export default function WardrobeScreen() {
   const router = useRouter();
@@ -24,10 +24,11 @@ export default function WardrobeScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const { height } = useWindowDimensions();
 
-
   const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<any>(null);
   const [newFolderName, setNewFolderName] = useState("");
+  const [createFolderName, setCreateFolderName] = useState("");
 
   useEffect(() => {
     loadFolders();
@@ -41,6 +42,18 @@ export default function WardrobeScreen() {
       console.error(e);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCreateConfirm = async () => {
+    if (!createFolderName.trim()) return;
+    try {
+      await createFolder(createFolderName.trim());
+      setCreateModalVisible(false);
+      setCreateFolderName("");
+      await loadFolders();
+    } catch (e) {
+      Alert.alert("Błąd", "Nie udało się stworzyć folderu");
     }
   };
 
@@ -69,23 +82,19 @@ export default function WardrobeScreen() {
       ]
     );
   };
-  
+
   const handleDelete = (folder: any) => {
     Alert.alert(
       "Usuń folder",
       `Czy na pewno chcesz usunąć folder "${folder.name}"? Zdjęcia nie zostaną usunięte.`,
       [
-        {
-          text: "Anuluj",
-          style: "cancel",
-        },
+        { text: "Anuluj", style: "cancel" },
         {
           text: "Usuń",
           style: "destructive",
           onPress: async () => {
             try {
               await deleteFolder(folder.id);
-              
               await loadFolders();
             } catch (e) {
               Alert.alert("Błąd", "Nie udało się usunąć folderu");
@@ -118,6 +127,15 @@ export default function WardrobeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Przycisk tworzenia nowego folderu */}
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={() => setCreateModalVisible(true)}
+      >
+        <Ionicons name="add-circle-outline" size={22} color="#A37D5D" />
+        <Text style={styles.createButtonText}>Stwórz folder</Text>
+      </TouchableOpacity>
+
       {/* Folder "Ulubione" zawsze na górze */}
       <TouchableOpacity
         style={styles.folder}
@@ -150,7 +168,51 @@ export default function WardrobeScreen() {
         )}
       />
 
-      
+      {/* Modal tworzenia nowego folderu */}
+      <Modal
+        visible={createModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCreateModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalBox}>
+              <Text style={styles.modalTitle}>Nowy folder</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={createFolderName}
+                onChangeText={setCreateFolderName}
+                placeholder="Nazwa folderu"
+                placeholderTextColor="#aaa"
+                autoFocus
+              />
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.modalButtonCancel}
+                  onPress={() => {
+                    setCreateModalVisible(false);
+                    setCreateFolderName("");
+                  }}
+                >
+                  <Text style={styles.modalButtonCancelText}>Anuluj</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalButtonConfirm}
+                  onPress={handleCreateConfirm}
+                >
+                  <Text style={styles.modalButtonConfirmText}>Stwórz</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Modal zmiany nazwy folderu */}
       <Modal
         visible={renameModalVisible}
         transparent
@@ -164,7 +226,6 @@ export default function WardrobeScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <Text style={styles.modalTitle}>Zmień nazwę folderu</Text>
-
               <TextInput
                 style={styles.modalInput}
                 value={newFolderName}
@@ -173,7 +234,6 @@ export default function WardrobeScreen() {
                 placeholderTextColor="#aaa"
                 autoFocus
               />
-
               <View style={styles.modalButtons}>
                 <TouchableOpacity
                   style={styles.modalButtonCancel}
@@ -181,7 +241,6 @@ export default function WardrobeScreen() {
                 >
                   <Text style={styles.modalButtonCancelText}>Anuluj</Text>
                 </TouchableOpacity>
-
                 <TouchableOpacity
                   style={styles.modalButtonConfirm}
                   onPress={handleRenameConfirm}
@@ -208,6 +267,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: "#A37D5D",
+    borderStyle: "dashed",
+    borderRadius: 16,
+    paddingVertical: 14,
+    marginBottom: 16,
+  },
+  createButtonText: {
+    color: "#A37D5D",
+    fontSize: 16,
+    fontWeight: "600",
   },
   row: {
     justifyContent: "space-between",

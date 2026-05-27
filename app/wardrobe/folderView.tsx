@@ -49,7 +49,6 @@ export default function FolderViewScreen() {
   const handleToggleFavorite = async (item: any) => {
     try {
       await toggleFavorite(item.id, item.is_favorite ?? false);
-      // Aktualizujemy stan lokalnie żeby serduszko od razu się zmieniło
       setImages((prev) =>
         prev.map((img) =>
           img.id === item.id

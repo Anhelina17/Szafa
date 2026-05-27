@@ -22,6 +22,23 @@ export const getFolders = async () => {
   return folders;
 };
 
+// Tworzenie nowego folderu
+export const createFolder = async (name: string) => {
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
+
+  if (!user) throw new Error("Brak użytkownika");
+
+  const { error } = await supabase
+    .from("folders")
+    .insert({ name: name.trim(), user_id: user.id });
+
+  if (error) {
+    console.error("Błąd tworzenia folderu:", error);
+    throw error;
+  }
+};
+
 // Zmiana nazwy folderu
 export const renameFolder = async (folderId: string, newName: string) => {
   const { error } = await supabase

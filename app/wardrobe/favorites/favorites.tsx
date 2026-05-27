@@ -3,6 +3,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   StyleSheet,
@@ -10,13 +11,12 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { getFavoriteImages, toggleFavorite } from "../../../services/images";
+import { deleteImage, getFavoriteImages, toggleFavorite } from "../../../services/images";
 
 export default function FavoritesScreen() {
   const [images, setImages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // useFocusEffect odświeża listę gdy wracamy na ten ekran
   useFocusEffect(
     useCallback(() => {
       loadFavorites();
@@ -38,11 +38,50 @@ export default function FavoritesScreen() {
   const handleToggleFavorite = async (item: any) => {
     try {
       await toggleFavorite(item.id, item.is_favorite ?? false);
-      // Usuwamy zdjęcie z listy gdy odznaczamy ulubione
       setImages((prev) => prev.filter((img) => img.id !== item.id));
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleLongPress = (item: any) => {
+    Alert.alert(
+      "Opcje zdjęcia",
+      "Co chcesz zrobić z tym zdjęciem?",
+      [
+        {
+          text: "Usuń zdjęcie",
+          style: "destructive",
+          onPress: () => handleDelete(item),
+        },
+        {
+          text: "Anuluj",
+          style: "cancel",
+        },
+      ]
+    );
+  };
+
+  const handleDelete = (item: any) => {
+    Alert.alert(
+      "Usuń zdjęcie",
+      "Czy na pewno chcesz usunąć to zdjęcie? Zostanie usunięte ze wszystkich folderów.",
+      [
+        { text: "Anuluj", style: "cancel" },
+        {
+          text: "Usuń",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteImage(item.id, item.image_url);
+              await loadFavorites();
+            } catch (e) {
+              Alert.alert("Błąd", "Nie udało się usunąć zdjęcia");
+            }
+          },
+        },
+      ]
+    );
   };
 
   if (isLoading) {
@@ -66,7 +105,11 @@ export default function FavoritesScreen() {
           numColumns={2}
           columnWrapperStyle={styles.row}
           renderItem={({ item }) => (
-            <View style={styles.imageContainer}>
+            <TouchableOpacity
+              style={styles.imageContainer}
+              onLongPress={() => handleLongPress(item)}
+              delayLongPress={500}
+            >
               <Image
                 source={{ uri: item.image_url }}
                 style={styles.image}
@@ -75,14 +118,10 @@ export default function FavoritesScreen() {
               <TouchableOpacity
                 style={styles.heartButton}
                 onPress={() => handleToggleFavorite(item)}
->
-                <Ionicons
-                  name="heart"
-                  size={22}
-                  color="#A37D5D"
-                />
+              >
+                <Ionicons name="heart" size={22} color="#A37D5D" />
               </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           )}
         />
       )}
@@ -125,7 +164,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 4,
   },
- 
   emptyText: {
     color: "#A37D5D",
     fontSize: 16,
