@@ -5,27 +5,40 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 export default function HomeScreen() {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Szafa</Text>
       <Text style={styles.subtitle}>Twoja wirtualna szafa</Text>
 
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.buttonV1}
-            onPress={() => setShowMenu(true)}
-            >
+        <TouchableOpacity
+          style={styles.buttonV1}
+          onPress={() => setShowMenu(true)}
+        >
           <Text style={styles.buttonV1Text}>Dodaj ubrania</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonV2} onPress={()=> router.push("/wardrobe/wardrobe")}>
+        <TouchableOpacity
+          style={styles.buttonV2}
+          onPress={() => router.push("/wardrobe/wardrobe")}
+        >
           <Text style={styles.buttonV2Text}>Zobacz szafę</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonV1}>
+
+        <TouchableOpacity
+          style={styles.buttonV1}
+          onPress={() => router.push("/outfits/selectImages")}
+        >
           <Text style={styles.buttonV1Text}>Stwórz stylizację</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonV2}>
+
+        <TouchableOpacity
+          style={styles.buttonV2}
+          onPress={() => router.push("/outfits/outfits")}
+        >
           <Text style={styles.buttonV2Text}>Zobacz stylizacje</Text>
         </TouchableOpacity>
       </View>
@@ -37,39 +50,38 @@ export default function HomeScreen() {
         <Text style={styles.profileText}>Profil</Text>
       </TouchableOpacity>
 
-      
-        {showMenu && (
-      <View style={styles.menuOverlay}>
-        <View style={styles.menuBox}>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => {
-            setShowMenu(false);
-            router.push("/camera");
-          }}
-      >
-        <Text style={styles.menuText}>Otwórz aparat</Text>
-      </TouchableOpacity>
+      {showMenu && (
+        <View style={styles.menuOverlay}>
+          <View style={styles.menuBox}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowMenu(false);
+                router.push("/camera");
+              }}
+            >
+              <Text style={styles.menuText}>Otwórz aparat</Text>
+            </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.menuItem}
-        onPress={() => {
-          setShowMenu(false);
-          router.push("/galleryPicker");
-        }}
-      >
-        <Text style={styles.menuText}>Otwórz galerię</Text>
-      </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowMenu(false);
+                router.push("/galleryPicker");
+              }}
+            >
+              <Text style={styles.menuText}>Otwórz galerię</Text>
+            </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.menuCancel}
-        onPress={() => setShowMenu(false)}
-      >
-        <Text style={styles.menuCancelText}>Anuluj</Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-)}
+            <TouchableOpacity
+              style={styles.menuCancel}
+              onPress={() => setShowMenu(false)}
+            >
+              <Text style={styles.menuCancelText}>Anuluj</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -101,11 +113,11 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   buttonV1: {
-    width: '70%',
-    backgroundColor: '#A37D5D',
+    width: "70%",
+    backgroundColor: "#A37D5D",
     paddingVertical: 15,
     borderRadius: 30,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
     borderWidth: 1,
     borderColor: "#A37D5D",
@@ -115,17 +127,17 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   buttonV1Text: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: '400',
-    fontFamily: "Inter"
+    fontWeight: "400",
+    fontFamily: "Inter",
   },
   buttonV2: {
-    width: '70%',
-    backgroundColor: '##FFFAF6',
+    width: "70%",
+    backgroundColor: "#FFFAF6",
     paddingVertical: 15,
     borderRadius: 30,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
     borderWidth: 2,
     borderColor: "#A37D5D",
@@ -135,10 +147,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   buttonV2Text: {
-    color: '#A37D5D',
+    color: "#A37D5D",
     fontSize: 18,
-    fontWeight: '400',
-    fontFamily: "Inter"
+    fontWeight: "400",
+    fontFamily: "Inter",
   },
   profileButton: {
     position: "absolute",
@@ -152,33 +164,30 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
-    fontFamily: "Inter"
+    fontFamily: "Inter",
   },
-
   menuOverlay: {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: "rgba(0,0,0,0.4)",
-  justifyContent: "flex-end",
-  alignItems: "center",
-},
-
-menuBox: {
-  width: "100%",
-  backgroundColor: "#FFFAF6",
-  paddingVertical: 20,
-  borderTopLeftRadius: 20,
-  borderTopRightRadius: 20,
-  alignItems: "center",
-},
-
-menuItem: {
-  borderRadius: 10,
-  marginBottom: 10,
-  width: "80%",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  menuBox: {
+    width: "100%",
+    backgroundColor: "#FFFAF6",
+    paddingVertical: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    alignItems: "center",
+  },
+  menuItem: {
+    borderRadius: 10,
+    marginBottom: 10,
+    width: "80%",
     backgroundColor: "#A37D5D33",
     paddingVertical: 15,
     alignItems: "center",
@@ -188,22 +197,18 @@ menuItem: {
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-},
-
-menuText: {
-  color: "#A37D5D",
+  },
+  menuText: {
+    color: "#A37D5D",
     fontSize: 18,
     fontWeight: "600",
-},
-
-menuCancel: {
-  marginTop: 10,
-  paddingVertical: 10,
-},
-
-menuCancelText: {
-  fontSize: 16,
-  color: "#202C39",
-},
-
+  },
+  menuCancel: {
+    marginTop: 10,
+    paddingVertical: 10,
+  },
+  menuCancelText: {
+    fontSize: 16,
+    color: "#202C39",
+  },
 });
