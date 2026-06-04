@@ -27,6 +27,10 @@ const favoritesIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height
   <path fill-rule="evenodd" clip-rule="evenodd" d="M20 10.0004C17.001 6.50536 11.9896 5.42525 8.23205 8.62565C4.47447 11.826 3.94545 17.1769 6.8963 20.9621C9.34973 24.1091 16.7747 30.7466 19.2082 32.8949C19.4803 33.1352 19.6165 33.2554 19.7753 33.3026C19.9138 33.3437 20.0655 33.3437 20.2042 33.3026C20.363 33.2554 20.499 33.1352 20.7713 32.8949C23.2048 30.7466 30.6297 24.1091 33.0832 20.9621C36.034 17.1769 35.5695 11.7924 31.7473 8.62565C27.9252 5.45892 22.999 6.50536 20 10.0004Z" stroke="#A37D5D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
+const closeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <path d="M6.99505 7.00627C6.60452 7.3968 6.60452 8.02996 6.99505 8.42049L10.5802 12.0056L6.99505 15.5908C6.60452 15.9813 6.60452 16.6145 6.99505 17.005C7.38557 17.3955 8.01874 17.3955 8.40926 17.005L11.9944 13.4198L15.5796 17.005C15.9701 17.3955 16.6033 17.3955 16.9938 17.005C17.3843 16.6145 17.3843 15.9813 16.9938 15.5908L13.4086 12.0056L16.9938 8.4205C17.3843 8.02998 17.3843 7.39681 16.9938 7.00629C16.6032 6.61576 15.9701 6.61576 15.5796 7.00629L11.9944 10.5914L8.40926 7.00627C8.01874 6.61575 7.38557 6.61575 6.99505 7.00627Z" fill="#0F0F0F"/>
+</svg>`;
+
 export default function WardrobeScreen() {
   const router = useRouter();
   const [folders, setFolders] = useState<any[]>([]);
@@ -142,41 +146,45 @@ export default function WardrobeScreen() {
       </TouchableOpacity>
 
       <FlatList
-        data={folders}
+        data={[{ id: 'ulubione', name: 'Ulubione', isSpecial: true }, ...folders]}
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={styles.row}
         contentContainerStyle={{ paddingBottom: 120 }}
-        ListHeaderComponent={
-          <TouchableOpacity
-            style={styles.folder}
-            onPress={() => router.push("/wardrobe/favorites/favorites")}
-          >
-            <SvgXml xml={favoritesIcon} width={40} height={40} />
-            <Text style={styles.folderText}>Ulubione</Text>
-          </TouchableOpacity>
-        }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.folder}
-            onPress={() =>
-              router.push({
-                pathname: "/wardrobe/folderView",
-                params: { folderId: item.id, folderName: item.name },
-              })
-            }
-            onLongPress={() => handleLongPress(item)}
-            delayLongPress={500}
-          >
-            <Text style={styles.folderText}>{item.name}</Text>
-          </TouchableOpacity>
-        )}
+        renderItem={({ item }: { item: any }) => {
+          if (item.isSpecial) {
+            return (
+              <TouchableOpacity
+                style={styles.folder}
+                onPress={() => router.push("/wardrobe/favorites/favorites")}
+              >
+                <SvgXml xml={favoritesIcon} width={40} height={40} />
+                <Text style={styles.folderText}>Ulubione</Text>
+              </TouchableOpacity>
+            );
+          }
+          return (
+            <TouchableOpacity
+              style={styles.folder}
+              onPress={() =>
+                router.push({
+                  pathname: "/wardrobe/folderView",
+                  params: { folderId: item.id, folderName: item.name },
+                })
+              }
+              onLongPress={() => handleLongPress(item)}
+              delayLongPress={500}
+            >
+              <Text style={styles.folderText}>{item.name}</Text>
+            </TouchableOpacity>
+          );
+        }}
       />
 
       <Modal
         visible={createModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setCreateModalVisible(false)}
       >
         <KeyboardAvoidingView
@@ -185,32 +193,35 @@ export default function WardrobeScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>Nowy folder</Text>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Stwórz folder</Text>
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => {
+                    setCreateModalVisible(false);
+                    setCreateFolderName("");
+                  }}>
+                  <SvgXml xml={closeIcon} width={24} height={24} />
+                </TouchableOpacity>
+              </View>
               <TextInput
                 style={styles.modalInput}
                 value={createFolderName}
                 onChangeText={setCreateFolderName}
-                placeholder="Nazwa folderu"
-                placeholderTextColor="#aaa"
+                placeholder="Wpisz..."
+                placeholderTextColor="#9D9D9D"
                 autoFocus
               />
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={styles.modalButtonCancel}
-                  onPress={() => {
-                    setCreateModalVisible(false);
-                    setCreateFolderName("");
-                  }}
-                >
-                  <Text style={styles.modalButtonCancelText}>Anuluj</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.modalButtonConfirm}
-                  onPress={handleCreateConfirm}
-                >
-                  <Text style={styles.modalButtonConfirmText}>Stwórz</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  createFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive,
+                ]}
+                onPress={handleCreateConfirm}
+                disabled={!createFolderName.trim()}
+              >
+                <Text style={styles.modalButtonText}>Stwórz</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -219,7 +230,7 @@ export default function WardrobeScreen() {
       <Modal
         visible={renameModalVisible}
         transparent
-        animationType="slide"
+        animationType="fade"
         onRequestClose={() => setRenameModalVisible(false)}
       >
         <KeyboardAvoidingView
@@ -228,29 +239,32 @@ export default function WardrobeScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>Zmień nazwę folderu</Text>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Zmień nazwę</Text>
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => setRenameModalVisible(false)}>
+                  <SvgXml xml={closeIcon} width={24} height={24} />
+                </TouchableOpacity>
+              </View>
               <TextInput
                 style={styles.modalInput}
                 value={newFolderName}
                 onChangeText={setNewFolderName}
-                placeholder="Nowa nazwa"
-                placeholderTextColor="#aaa"
+                placeholder="Wpisz..."
+                placeholderTextColor="#9D9D9D"
                 autoFocus
               />
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={styles.modalButtonCancel}
-                  onPress={() => setRenameModalVisible(false)}
-                >
-                  <Text style={styles.modalButtonCancelText}>Anuluj</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.modalButtonConfirm}
-                  onPress={handleRenameConfirm}
-                >
-                  <Text style={styles.modalButtonConfirmText}>Zapisz</Text>
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  newFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive,
+                ]}
+                onPress={handleRenameConfirm}
+                disabled={!newFolderName.trim()}
+              >
+                <Text style={styles.modalButtonText}>Zapisz</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -266,7 +280,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFAF6",
     paddingTop: 56,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   center: {
     flex: 1,
@@ -302,14 +316,13 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 19,
   },
   folder: {
-    width: "48%",
+    width: "47%",
     aspectRatio: 1,
     borderRadius: 30,
     backgroundColor: "rgba(163, 125, 93, 0.2)",
-    marginBottom: 15,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -324,60 +337,63 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
     alignItems: "center",
-    paddingBottom: 40,
   },
   modalBox: {
-    backgroundColor: "#FFFAF6",
-    borderRadius: 16,
+    backgroundColor: "#EDE1D7",
+    borderRadius: 30,
     padding: 24,
-    width: "80%",
+    width: 353,
+    alignItems: "center",
+    gap: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    position: "relative",
+  },
+  modalCloseButton: {
+    position: "absolute",
+    right: 0,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
     color: "#202C39",
-    marginBottom: 16,
+    fontFamily: "Inter",
+    flex: 1,
     textAlign: "center",
   },
   modalInput: {
-    borderWidth: 1,
-    borderColor: "#D8CFC4",
-    borderRadius: 10,
+    width: 305,
+    backgroundColor: "#FFFAF6",
+    borderRadius: 30,
     padding: 12,
+    paddingHorizontal: 20,
     fontSize: 16,
+    fontFamily: "Inter",
     color: "#202C39",
-    marginBottom: 20,
   },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  modalButtonCancel: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#A37D5D",
+  modalButton: {
+    width: 305,
+    height: 48,
+    borderRadius: 30,
+    justifyContent: "center",
     alignItems: "center",
   },
-  modalButtonCancelText: {
-    color: "#A37D5D",
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  modalButtonConfirm: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 10,
+  modalButtonActive: {
     backgroundColor: "#A37D5D",
-    alignItems: "center",
   },
-  modalButtonConfirmText: {
-    color: "#fff",
-    fontWeight: "600",
+  modalButtonInactive: {
+    backgroundColor: "#9D9D9D",
+  },
+  modalButtonText: {
+    color: "#FFFAF6",
     fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
   },
 });
