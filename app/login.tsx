@@ -15,7 +15,7 @@ export default function LoginScreen() {
     if (error) {
       alert(error.message);
     } else {
-      router.replace("home");
+      router.replace("/wardrobe/wardrobe");
     }
   };
 

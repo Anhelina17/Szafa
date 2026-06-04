@@ -12,10 +12,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  useWindowDimensions,
-  View
+  View,
+  useWindowDimensions
 } from "react-native";
 import FavoritesIcon from "../../assets/icons/icon_favorites.svg";
+import TabBar from "../../components/TabBar";
 import { createFolder, deleteFolder, getFolders, renameFolder } from "../../services/folders";
 
 export default function WardrobeScreen() {
@@ -113,7 +114,7 @@ export default function WardrobeScreen() {
       setSelectedFolder(null);
       await loadFolders();
     } catch (e) {
-      Alert.alert("Błąd", "Nie udało się zmienić nazwy folderu");
+      Alert.alert("Błąd", "Nie udało się zmienić назви folderu");
     }
   };
 
@@ -127,7 +128,6 @@ export default function WardrobeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Przycisk tworzenia nowego folderu */}
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => setCreateModalVisible(true)}
@@ -136,7 +136,6 @@ export default function WardrobeScreen() {
         <Text style={styles.createButtonText}>Stwórz folder</Text>
       </TouchableOpacity>
 
-      {/* Folder "Ulubione" zawsze na górze */}
       <TouchableOpacity
         style={styles.folder}
         onPress={() => router.push("/wardrobe/favorites/favorites")}
@@ -145,12 +144,12 @@ export default function WardrobeScreen() {
         <Text style={styles.folderText}>Ulubione</Text>
       </TouchableOpacity>
 
-      {/* Foldery użytkownika — long press otwiera menu */}
       <FlatList
         data={folders}
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={styles.row}
+        contentContainerStyle={{ paddingBottom: 100 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.folder}
@@ -168,7 +167,6 @@ export default function WardrobeScreen() {
         )}
       />
 
-      {/* Modal tworzenia nowego folderu */}
       <Modal
         visible={createModalVisible}
         transparent
@@ -212,7 +210,6 @@ export default function WardrobeScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Modal zmiany nazwy folderu */}
       <Modal
         visible={renameModalVisible}
         transparent
@@ -252,6 +249,8 @@ export default function WardrobeScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <TabBar />
     </View>
   );
 }
@@ -276,14 +275,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "#A37D5D",
     borderStyle: "dashed",
-    borderRadius: 16,
+    borderRadius: 30,
     paddingVertical: 14,
     marginBottom: 16,
   },
   createButtonText: {
     color: "#A37D5D",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   row: {
     justifyContent: "space-between",
@@ -293,7 +292,7 @@ const styles = StyleSheet.create({
     width: "48%",
     aspectRatio: 1,
     borderRadius: 20,
-    backgroundColor: "rgba(163, 125, 93, 0.2)",
+    backgroundColor: "rgba(163, 125, 93, 0.15)",
     marginBottom: 15,
     alignItems: "center",
     justifyContent: "center",
