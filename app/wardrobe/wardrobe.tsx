@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -12,19 +11,26 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
-  useWindowDimensions
+  View
 } from "react-native";
-import FavoritesIcon from "../../assets/icons/icon_favorites.svg";
+import { SvgXml } from "react-native-svg";
 import TabBar from "../../components/TabBar";
 import { createFolder, deleteFolder, getFolders, renameFolder } from "../../services/folders";
+
+const plusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
+  <path d="M15 28.125C22.2487 28.125 28.125 22.2487 28.125 15C28.125 7.75126 22.2487 1.875 15 1.875C7.75126 1.875 1.875 7.75126 1.875 15C1.875 22.2487 7.75126 28.125 15 28.125Z" fill="#A37D5D"/>
+  <path d="M7.8374 15H22.1624" stroke="white" stroke-width="2.06897" stroke-miterlimit="10" stroke-linecap="round"/>
+  <path d="M15 7.8374V22.1624" stroke="white" stroke-width="2.06897" stroke-miterlimit="10" stroke-linecap="round"/>
+</svg>`;
+
+const favoritesIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
+  <path fill-rule="evenodd" clip-rule="evenodd" d="M20 10.0004C17.001 6.50536 11.9896 5.42525 8.23205 8.62565C4.47447 11.826 3.94545 17.1769 6.8963 20.9621C9.34973 24.1091 16.7747 30.7466 19.2082 32.8949C19.4803 33.1352 19.6165 33.2554 19.7753 33.3026C19.9138 33.3437 20.0655 33.3437 20.2042 33.3026C20.363 33.2554 20.499 33.1352 20.7713 32.8949C23.2048 30.7466 30.6297 24.1091 33.0832 20.9621C36.034 17.1769 35.5695 11.7924 31.7473 8.62565C27.9252 5.45892 22.999 6.50536 20 10.0004Z" stroke="#A37D5D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
 
 export default function WardrobeScreen() {
   const router = useRouter();
   const [folders, setFolders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { height } = useWindowDimensions();
-
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<any>(null);
@@ -76,10 +82,7 @@ export default function WardrobeScreen() {
           style: "destructive",
           onPress: () => handleDelete(folder),
         },
-        {
-          text: "Anuluj",
-          style: "cancel",
-        },
+        { text: "Anuluj", style: "cancel" },
       ]
     );
   };
@@ -114,7 +117,7 @@ export default function WardrobeScreen() {
       setSelectedFolder(null);
       await loadFolders();
     } catch (e) {
-      Alert.alert("Błąd", "Nie udało się zmienić назви folderu");
+      Alert.alert("Błąd", "Nie udało się zmienić nazwy folderu");
     }
   };
 
@@ -128,20 +131,14 @@ export default function WardrobeScreen() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Ubrania</Text>
+
       <TouchableOpacity
         style={styles.createButton}
         onPress={() => setCreateModalVisible(true)}
       >
-        <Ionicons name="add-circle-outline" size={22} color="#A37D5D" />
+        <SvgXml xml={plusIcon} width={30} height={30} />
         <Text style={styles.createButtonText}>Stwórz folder</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.folder}
-        onPress={() => router.push("/wardrobe/favorites/favorites")}
-      >
-        <FavoritesIcon width={40} height={40} color="#A37D5D" />
-        <Text style={styles.folderText}>Ulubione</Text>
       </TouchableOpacity>
 
       <FlatList
@@ -149,7 +146,16 @@ export default function WardrobeScreen() {
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={styles.row}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
+        ListHeaderComponent={
+          <TouchableOpacity
+            style={styles.folder}
+            onPress={() => router.push("/wardrobe/favorites/favorites")}
+          >
+            <SvgXml xml={favoritesIcon} width={40} height={40} />
+            <Text style={styles.folderText}>Ulubione</Text>
+          </TouchableOpacity>
+        }
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.folder}
@@ -259,7 +265,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFAF6",
-    paddingTop: 16,
+    paddingTop: 56,
     paddingHorizontal: 16,
   },
   center: {
@@ -267,22 +273,32 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#202C39",
+    fontFamily: "Inter",
+    lineHeight: 26,
+    textAlign: "center",
+    marginBottom: 16,
+  },
   createButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: "#A37D5D",
     borderStyle: "dashed",
     borderRadius: 30,
-    paddingVertical: 14,
+    height: 50,
     marginBottom: 16,
   },
   createButtonText: {
     color: "#A37D5D",
     fontSize: 16,
     fontWeight: "700",
+    fontFamily: "Inter",
   },
   row: {
     justifyContent: "space-between",
@@ -291,19 +307,19 @@ const styles = StyleSheet.create({
   folder: {
     width: "48%",
     aspectRatio: 1,
-    borderRadius: 20,
-    backgroundColor: "rgba(163, 125, 93, 0.15)",
+    borderRadius: 30,
+    backgroundColor: "rgba(163, 125, 93, 0.2)",
     marginBottom: 15,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#D8CFC4",
   },
   folderText: {
     fontSize: 16,
     fontWeight: "700",
     color: "#A37D5D",
+    fontFamily: "Inter",
     marginTop: 6,
+    textAlign: "center",
   },
   modalOverlay: {
     flex: 1,
