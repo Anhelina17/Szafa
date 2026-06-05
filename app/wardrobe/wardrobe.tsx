@@ -37,6 +37,8 @@ export default function WardrobeScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [folderOptionsModalVisible, setFolderOptionsModalVisible] = useState(false);
+  const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<any>(null);
   const [newFolderName, setNewFolderName] = useState("");
   const [createFolderName, setCreateFolderName] = useState("");
@@ -69,48 +71,25 @@ export default function WardrobeScreen() {
   };
 
   const handleLongPress = (folder: any) => {
-    Alert.alert(
-      folder.name,
-      "Co chcesz zrobić z tym folderem?",
-      [
-        {
-          text: "Zmień nazwę",
-          onPress: () => {
-            setSelectedFolder(folder);
-            setNewFolderName(folder.name);
-            setRenameModalVisible(true);
-          },
-        },
-        {
-          text: "Usuń folder",
-          style: "destructive",
-          onPress: () => handleDelete(folder),
-        },
-        { text: "Anuluj", style: "cancel" },
-      ]
-    );
+    setSelectedFolder(folder);
+    setFolderOptionsModalVisible(true);
   };
 
-  const handleDelete = (folder: any) => {
-    Alert.alert(
-      "Usuń folder",
-      `Czy na pewno chcesz usunąć folder "${folder.name}"? Zdjęcia nie zostaną usunięte.`,
-      [
-        { text: "Anuluj", style: "cancel" },
-        {
-          text: "Usuń",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteFolder(folder.id);
-              await loadFolders();
-            } catch (e) {
-              Alert.alert("Błąd", "Nie udało się usunąć folderu");
-            }
-          },
-        },
-      ]
-    );
+  const handleDelete = async () => {
+    if (!selectedFolder) return;
+    setFolderOptionsModalVisible(false);
+    setDeleteConfirmModalVisible(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedFolder) return;
+    setDeleteConfirmModalVisible(false);
+    try {
+      await deleteFolder(selectedFolder.id);
+      await loadFolders();
+    } catch (e) {
+      Alert.alert("Błąd", "Nie udało się usunąć folderu");
+    }
   };
 
   const handleRenameConfirm = async () => {
@@ -181,6 +160,76 @@ export default function WardrobeScreen() {
         }}
       />
 
+      {/* Modal opcji folderu */}
+      <Modal
+        visible={folderOptionsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFolderOptionsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{selectedFolder?.name}</Text>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setFolderOptionsModalVisible(false)}
+              >
+                <SvgXml xml={closeIcon} width={24} height={24} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSubtitle}>Co chcesz zrobić z tym folderem?</Text>
+            <TouchableOpacity
+              style={styles.modalButtonPrimary}
+              onPress={() => {
+                setFolderOptionsModalVisible(false);
+                setNewFolderName(selectedFolder?.name ?? "");
+                setRenameModalVisible(true);
+              }}
+            >
+              <Text style={styles.modalButtonPrimaryText}>Zmień nazwę</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButtonDanger}
+              onPress={handleDelete}
+            >
+              <Text style={styles.modalButtonDangerText}>Usuń folder</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal potwierdzenia usunięcia */}
+      <Modal
+        visible={deleteConfirmModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteConfirmModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.deleteModalBox}>
+            <Text style={styles.deleteModalTitle}>
+              Czy na pewno chcesz usunąć folder "{selectedFolder?.name}"?
+            </Text>
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity
+                style={styles.deleteModalButtonSafe}
+                onPress={() => setDeleteConfirmModalVisible(false)}
+              >
+                <Text style={styles.deleteModalButtonSafeText}>Zostaw</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteModalButtonDanger}
+                onPress={handleDeleteConfirm}
+              >
+                <Text style={styles.deleteModalButtonDangerText}>Usuń</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal tworzenia nowego folderu */}
       <Modal
         visible={createModalVisible}
         transparent
@@ -227,6 +276,7 @@ export default function WardrobeScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Modal zmiany nazwy folderu */}
       <Modal
         visible={renameModalVisible}
         transparent
@@ -346,7 +396,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: 353,
     alignItems: "center",
-    gap: 16,
+    gap: 12,
   },
   modalHeader: {
     flexDirection: "row",
@@ -366,6 +416,42 @@ const styles = StyleSheet.create({
     fontFamily: "Inter",
     flex: 1,
     textAlign: "center",
+  },
+  modalSubtitle: {
+    fontSize: 16,
+    fontWeight: "400",
+    color: "#202C39",
+    fontFamily: "Inter",
+    textAlign: "center",
+  },
+  modalButtonPrimary: {
+    width: 305,
+    height: 48,
+    borderRadius: 30,
+    backgroundColor: "#A37D5D",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtonPrimaryText: {
+    color: "#FFFAF6",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
+  },
+  modalButtonDanger: {
+    width: 305,
+    height: 48,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#E05744",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtonDangerText: {
+    color: "#E05744",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
   },
   modalInput: {
     width: 305,
@@ -392,6 +478,55 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     color: "#FFFAF6",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
+  },
+  deleteModalBox: {
+    backgroundColor: "#EDE1D7",
+    borderRadius: 30,
+    padding: 24,
+    width: 353,
+    alignItems: "center",
+    gap: 16,
+  },
+  deleteModalTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#202C39",
+    fontFamily: "Inter",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  deleteModalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  deleteModalButtonSafe: {
+    width: 152,
+    height: 50,
+    borderRadius: 30,
+    backgroundColor: "#A37D5D",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteModalButtonSafeText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
+  },
+  deleteModalButtonDanger: {
+    width: 152,
+    height: 50,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#E05744",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  deleteModalButtonDangerText: {
+    color: "#E05744",
     fontSize: 16,
     fontFamily: "Inter",
     fontWeight: "400",
