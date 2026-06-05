@@ -2,9 +2,9 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Image,
+  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,20 +15,7 @@ import TabBar from "../../../components/TabBar";
 import { deleteImage, getFavoriteImages, toggleFavorite } from "../../../services/images";
 
 const backIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <g clip-path="url(#clip0_192_1772)">
-    <mask id="mask0_192_1772" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
-      <path d="M24 0H0V24H24V0Z" fill="white"/>
-    </mask>
-    <g mask="url(#mask0_192_1772)">
-      <path d="M14 7L9 12" stroke="#202C39" stroke-width="2.58621" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M9 12L14 17" stroke="#202C39" stroke-width="2.58621" stroke-linecap="round" stroke-linejoin="round"/>
-    </g>
-  </g>
-  <defs>
-    <clipPath id="clip0_192_1772">
-      <rect width="24" height="24" fill="white"/>
-    </clipPath>
-  </defs>
+  <path d="M16.0603 2.45407C16.3415 2.73536 16.4995 3.11683 16.4995 3.51457C16.4995 3.91232 16.3415 4.29378 16.0603 4.57507L8.63533 12.0001L16.0603 19.4251C16.3336 19.708 16.4848 20.0869 16.4813 20.4802C16.4779 20.8735 16.3202 21.2497 16.0421 21.5278C15.7639 21.8059 15.3877 21.9637 14.9944 21.9671C14.6011 21.9705 14.2222 21.8193 13.9393 21.5461L5.45383 13.0606C5.17262 12.7793 5.01465 12.3978 5.01465 12.0001C5.01465 11.6023 5.17262 11.2209 5.45383 10.9396L13.9393 2.45407C14.2206 2.17287 14.6021 2.01489 14.9998 2.01489C15.3976 2.01489 15.779 2.17287 16.0603 2.45407Z" fill="#202C39"/>
 </svg>`;
 
 const heartFilledIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -39,6 +26,10 @@ export default function FavoritesScreen() {
   const router = useRouter();
   const [images, setImages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [removeFavoriteModalVisible, setRemoveFavoriteModalVisible] = useState(false);
+  const [deleteOptionsModalVisible, setDeleteOptionsModalVisible] = useState(false);
+  const [deleteConfirmModalVisible, setDeleteConfirmModalVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -58,62 +49,36 @@ export default function FavoritesScreen() {
     }
   };
 
-  const handleToggleFavorite = async (item: any) => {
-    Alert.alert(
-      "Ulubione",
-      "Czy chcesz usunąć to zdjęcie z ulubionych?",
-      [
-        { text: "Nie", style: "cancel" },
-        {
-          text: "Tak",
-          onPress: async () => {
-            try {
-              await toggleFavorite(item.id, item.is_favorite ?? false);
-              setImages((prev) => prev.filter((img) => img.id !== item.id));
-            } catch (e) {
-              console.error(e);
-            }
-          },
-        },
-      ]
-    );
+  const handleToggleFavorite = (item: any) => {
+    setSelectedItem(item);
+    setRemoveFavoriteModalVisible(true);
+  };
+
+  const handleRemoveFavoriteConfirm = async () => {
+    if (!selectedItem) return;
+    setRemoveFavoriteModalVisible(false);
+    try {
+      await toggleFavorite(selectedItem.id, selectedItem.is_favorite ?? false);
+      setImages((prev) => prev.filter((img) => img.id !== selectedItem.id));
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleLongPress = (item: any) => {
-    Alert.alert(
-      "Opcje zdjęcia",
-      "Co chcesz zrobić z tym zdjęciem?",
-      [
-        {
-          text: "Usuń zdjęcie",
-          style: "destructive",
-          onPress: () => handleDelete(item),
-        },
-        { text: "Anuluj", style: "cancel" },
-      ]
-    );
+    setSelectedItem(item);
+    setDeleteOptionsModalVisible(true);
   };
 
-  const handleDelete = (item: any) => {
-    Alert.alert(
-      "Usuń zdjęcie",
-      "Czy na pewno chcesz usunąć to zdjęcie?",
-      [
-        { text: "Anuluj", style: "cancel" },
-        {
-          text: "Usuń",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteImage(item.id, item.image_url);
-              await loadFavorites();
-            } catch (e) {
-              Alert.alert("Błąd", "Nie udało się usunąć zdjęcia");
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteConfirm = async () => {
+    if (!selectedItem) return;
+    setDeleteConfirmModalVisible(false);
+    try {
+      await deleteImage(selectedItem.id, selectedItem.image_url);
+      await loadFavorites();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   if (isLoading) {
@@ -165,6 +130,95 @@ export default function FavoritesScreen() {
           )}
         />
       )}
+
+      {/* Modal usunięcia z ulubionych */}
+      <Modal
+        visible={removeFavoriteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRemoveFavoriteModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>
+              Czy na pewno chcesz usunąć to zdjęcie z "Ulubionych"?
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButtonSafe}
+                onPress={() => setRemoveFavoriteModalVisible(false)}
+              >
+                <Text style={styles.modalButtonSafeText}>Nie</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButtonDanger}
+                onPress={handleRemoveFavoriteConfirm}
+              >
+                <Text style={styles.modalButtonDangerText}>Tak</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal opcji zdjęcia (long press) */}
+      <Modal
+        visible={deleteOptionsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteOptionsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Co chcesz zrobić z tym zdjęciem?</Text>
+            <TouchableOpacity
+              style={styles.modalButtonDangerFull}
+              onPress={() => {
+                setDeleteOptionsModalVisible(false);
+                setDeleteConfirmModalVisible(true);
+              }}
+            >
+              <Text style={styles.modalButtonDangerText}>Usuń zdjęcie</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButtonSafeFull}
+              onPress={() => setDeleteOptionsModalVisible(false)}
+            >
+              <Text style={styles.modalButtonSafeFullText}>Anuluj</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal potwierdzenia usunięcia zdjęcia */}
+      <Modal
+        visible={deleteConfirmModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteConfirmModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>
+              Czy na pewno chcesz usunąć to zdjęcie?
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={styles.modalButtonSafe}
+                onPress={() => setDeleteConfirmModalVisible(false)}
+              >
+                <Text style={styles.modalButtonSafeText}>Zostaw</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButtonDanger}
+                onPress={handleDeleteConfirm}
+              >
+                <Text style={styles.modalButtonDangerText}>Usuń</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <TabBar />
     </View>
@@ -229,5 +283,83 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     lineHeight: 24,
     textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    backgroundColor: "#EDE1D7",
+    borderRadius: 30,
+    padding: 24,
+    width: 353,
+    alignItems: "center",
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#202C39",
+    fontFamily: "Inter",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalButtonSafe: {
+    width: 152,
+    height: 50,
+    borderRadius: 30,
+    backgroundColor: "#A37D5D",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtonSafeText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
+  },
+  modalButtonDanger: {
+    width: 152,
+    height: 50,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#E05744",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtonDangerText: {
+    color: "#E05744",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
+  },
+  modalButtonDangerFull: {
+    width: 305,
+    height: 48,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#E05744",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtonSafeFull: {
+    width: 305,
+    height: 48,
+    borderRadius: 30,
+    backgroundColor: "#A37D5D",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtonSafeFullText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
   },
 });
