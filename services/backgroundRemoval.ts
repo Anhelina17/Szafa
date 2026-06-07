@@ -15,6 +15,8 @@ export async function removeBackground(imageUri: string): Promise<string> {
   } as any);
 
   formData.append("size", "auto");
+  formData.append("crop", "true");
+  formData.append("crop_margin", "10px");
 
   console.log("wysyłam do remove.bg...");
 

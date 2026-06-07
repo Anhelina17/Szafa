@@ -1,16 +1,326 @@
-import { useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { supabase } from "../../supabaseClient";
+
+type ImageItem = {
+  id: string;
+  image_url: string;
+  is_favorite: boolean;
+};
+
+type MoodboardItem = {
+  image: ImageItem;
+  position: "top" | "middle" | "bottom" | "accent";
+};
 
 export default function OutfitPreviewScreen() {
   const router = useRouter();
+  const { selectedImages } = useLocalSearchParams<{ selectedImages: string }>();
+
+  const images: ImageItem[] = selectedImages ? JSON.parse(selectedImages) : [];
+
+  const [moodboard, setMoodboard] = useState<MoodboardItem[]>([]);
+  const [isLoadingAI, setIsLoadingAI] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isAutoLayout, setIsAutoLayout] = useState(false);
+  const [noClothingDetected, setNoClothingDetected] = useState(false);
+
+  useEffect(() => {
+    if (images.length > 0) {
+      generateMoodboard();
+    }
+  }, []);
+
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = (reader.result as string).split(",")[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  const generateMoodboard = async () => {
+    try {
+      setIsLoadingAI(true);
+      setIsAutoLayout(false);
+      setNoClothingDetected(false);
+
+      const apiKey = process.env.EXPO_PUBLIC_OPENAI_API_KEY;
+      if (!apiKey) throw new Error("Brak klucza OpenAI API");
+
+      const imageData = await Promise.all(
+        images.map(async (img) => {
+          const response = await fetch(img.image_url);
+          const blob = await response.blob();
+          const base64 = await blobToBase64(blob);
+          return { img, base64 };
+        })
+      );
+
+      const imageParts = imageData.map(({ base64 }) => ({
+        type: "image_url",
+        image_url: {
+          url: `data:image/jpeg;base64,${base64}`,
+        },
+      }));
+
+      const prompt = `Jesteś stylistą mody. Przeanalizuj te ${images.length} zdjęcia i ułóż je w stylizację jako moodboard.
+
+Dla każdego zdjęcia (numerowane od 0) zdecyduj pozycję:
+- "top" — górna część ciała (koszulka, bluza, sweter, kurtka, sukienka)
+- "middle" — dolna część ciała (spodnie, spódnica, szorty)
+- "bottom" — obuwie (buty, sneakersy, sandały)
+- "accent" — dodatki, akcesoria lub przedmioty które nie są odzieżą
+
+Zasady:
+1. Jeśli zdjęcie przedstawia odzież — przypisz odpowiednią pozycję
+2. Jeśli zdjęcie NIE przedstawia odzieży — przypisz "accent"
+3. Jeśli ŻADNE zdjęcie nie przedstawia odzieży — przypisz pozycje równomiernie i dodaj "noClothing": true
+4. Zawsze zwróć pozycję dla KAŻDEGO zdjęcia
+
+Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
+{"items":[{"id":"0","position":"top"},{"id":"1","position":"accent"}],"noClothing":false}`;
+
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: prompt },
+                ...imageParts,
+              ],
+            },
+          ],
+          max_tokens: 500,
+          temperature: 0.1,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("OpenAI error details:", JSON.stringify(errorData));
+        throw new Error("Błąd odpowiedzi OpenAI API");
+      }
+
+      const data = await response.json();
+      const text = data.choices?.[0]?.message?.content ?? "";
+
+      const clean = text.replace(/```json|```/g, "").trim();
+      const parsed: {
+        items: { id: string; position: string }[];
+        noClothing: boolean;
+      } = JSON.parse(clean);
+
+      if (parsed.noClothing) {
+        setNoClothingDetected(true);
+      }
+
+      const result: MoodboardItem[] = parsed.items.map((item) => {
+        const index = parseInt(item.id);
+        const image = images[index];
+        return {
+          image,
+          position: item.position as MoodboardItem["position"],
+        };
+      });
+
+      setMoodboard(result);
+    } catch (e) {
+      console.error("Błąd generowania moodboardu:", e);
+      setIsAutoLayout(true);
+      const fallback: MoodboardItem[] = images.map((img) => ({
+        image: img,
+        position: "top" as const,
+      }));
+      setMoodboard(fallback);
+    } finally {
+      setIsLoadingAI(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Brak użytkownika");
+
+      const { data: outfit, error: outfitError } = await supabase
+        .from("outfits")
+        .insert({ user_id: userData.user.id })
+        .select()
+        .single();
+
+      if (outfitError) throw outfitError;
+
+      const items = images.map((img) => ({
+        outfit_id: outfit.id,
+        image_id: img.id,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("outfit_items")
+        .insert(items);
+
+      if (itemsError) throw itemsError;
+
+      Alert.alert(
+        "Zapisano!",
+        "Stylizacja została zapisana.",
+        [
+          {
+            text: "Zobacz stylizacje",
+            onPress: () => router.push("/outfits/outfits"),
+          },
+          {
+            text: "Wróć do domu",
+            onPress: () => router.push("/wardrobe/wardrobe"),
+          },
+        ]
+      );
+    } catch (e) {
+      console.error("Błąd zapisywania:", e);
+      Alert.alert("Błąd", "Nie udało się zapisać stylizacji.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const topItems = moodboard.filter((i) => i.position === "top");
+  const middleItems = moodboard.filter((i) => i.position === "middle");
+  const mainItems = [...topItems, ...middleItems];
+  const accentItems = moodboard.filter((i) => i.position === "accent");
+  const bottomItems = moodboard.filter((i) => i.position === "bottom");
+  const hasSideItems = accentItems.length > 0 || bottomItems.length > 0;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Podgląd stylizacji</Text>
-      <Text style={styles.subtitle}>Nowa stylizacja</Text>
-      <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-        <Text style={styles.buttonText}>Wróć</Text>
-      </TouchableOpacity>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#202C39" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Twoja stylizacja</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      {isLoadingAI ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#A37D5D" />
+          <Text style={styles.loadingText}>AI układa Twoją stylizację...</Text>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {(isAutoLayout || noClothingDetected) && (
+            <View style={styles.autoBanner}>
+              <Ionicons name="information-circle-outline" size={20} color="#A37D5D" />
+              <Text style={styles.autoText}>
+                {noClothingDetected
+                  ? "Nie rozpoznano odzieży — przedmioty zostały ułożone automatycznie."
+                  : "AI nie odpowiedziało — stylizacja została ułożona automatycznie."}
+              </Text>
+              <TouchableOpacity onPress={generateMoodboard}>
+                <Text style={styles.retryText}>Spróbuj ponownie</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <View style={styles.moodboard}>
+            {isAutoLayout ? (
+              <View style={styles.autoGrid}>
+                {moodboard.map((item) => (
+                  <Image
+                    key={item.image.id}
+                    source={{ uri: item.image.image_url }}
+                    style={styles.autoGridImage}
+                    resizeMode="contain"
+                  />
+                ))}
+              </View>
+            ) : (
+              <View style={styles.layout}>
+                <View style={styles.leftColumn}>
+                  {mainItems.map((item) => (
+                    <Image
+                      key={item.image.id}
+                      source={{ uri: item.image.image_url }}
+                      style={styles.leftColumnImage}
+                      resizeMode="contain"
+                    />
+                  ))}
+                </View>
+
+                {hasSideItems && (
+                  <View style={styles.rightColumn}>
+                    <View style={styles.rightSlot}>
+                      {accentItems.length > 0 ? (
+                        accentItems.map((item) => (
+                          <Image
+                            key={item.image.id}
+                            source={{ uri: item.image.image_url }}
+                            style={styles.rightColumnImage}
+                            resizeMode="contain"
+                          />
+                        ))
+                      ) : (
+                        <View style={styles.emptySlot} />
+                      )}
+                    </View>
+
+                    <View style={styles.rightSlot}>
+                      {bottomItems.length > 0 ? (
+                        bottomItems.map((item) => (
+                          <Image
+                            key={item.image.id}
+                            source={{ uri: item.image.image_url }}
+                            style={styles.rightColumnImage}
+                            resizeMode="contain"
+                          />
+                        ))
+                      ) : (
+                        <View style={styles.emptySlot} />
+                      )}
+                    </View>
+                  </View>
+                )}
+              </View>
+            )}
+          </View>
+
+          <TouchableOpacity
+            style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>Zapisz stylizację</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -18,32 +328,117 @@ export default function OutfitPreviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     backgroundColor: "#FFFAF6",
-    paddingHorizontal: 20,
   },
-  title: {
-    fontSize: 24,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 56,
+    paddingBottom: 16,
+    backgroundColor: "#FFFAF6",
+    borderBottomWidth: 1,
+    borderBottomColor: "#E8DDD4",
+  },
+  headerTitle: {
+    fontSize: 18,
     fontWeight: "700",
     color: "#202C39",
-    marginBottom: 10,
   },
-  subtitle: {
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+  },
+  loadingText: {
     fontSize: 16,
     color: "#A37D5D",
-    marginBottom: 30,
     textAlign: "center",
   },
-  button: {
-    backgroundColor: "#A37D5D",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 30,
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
   },
-  buttonText: {
+  autoBanner: {
+    backgroundColor: "#FFF3E0",
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+    alignItems: "center",
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#A37D5D",
+  },
+  autoText: {
+    color: "#A37D5D",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  retryText: {
+    color: "#A37D5D",
+    fontWeight: "700",
+    fontSize: 14,
+    textDecorationLine: "underline",
+  },
+  moodboard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 20,
+    overflow: "hidden",
+    marginBottom: 24,
+  },
+  layout: {
+    flexDirection: "row",
+  },
+  leftColumn: {
+    flex: 1.3,
+    flexDirection: "column",
+  },
+  leftColumnImage: {
+    width: "100%",
+    height: 200,
+    backgroundColor: "#ffffff",
+  },
+  rightColumn: {
+    flex: 0.7,
+    flexDirection: "column",
+  },
+  rightSlot: {
+    flex: 1,
+    height: 200,
+  },
+  rightColumnImage: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#ffffff",
+  },
+  emptySlot: {
+    flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  autoGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  autoGridImage: {
+    width: "50%",
+    height: 180,
+    backgroundColor: "#ffffff",
+  },
+  saveButton: {
+    backgroundColor: "#A37D5D",
+    paddingVertical: 16,
+    borderRadius: 30,
+    alignItems: "center",
+    margin: 16,
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
+  saveButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
   },
 });
