@@ -1,5 +1,6 @@
 import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { fs, s } from "../utils/scale";
 
 export default function StartScreen() {
   const router = useRouter() as any;
@@ -32,47 +33,46 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#FFFAF6",
-    paddingHorizontal: 20,
+    paddingHorizontal: s(20),
   },
   title: {
-    fontSize: 24,
+    fontSize: fs(24),
     fontWeight: "700",
     color: "#202C39",
     fontFamily: "Inter",
-    lineHeight: 32,
+    lineHeight: fs(32),
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: s(8),
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "400",
     color: "#202C39",
     fontFamily: "Inter",
-    lineHeight: 24,
+    lineHeight: fs(24),
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: s(40),
   },
   buttonLog: {
-    width: 300,
-    height: 48,
+    width: s(300),
+    height: s(48),
     backgroundColor: "#A37D5D",
-    borderRadius: 30,
+    borderRadius: s(30),
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    marginBottom: s(12),
   },
   buttonLogText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "400",
     fontFamily: "Inter",
-    lineHeight: 24,
   },
   buttonReg: {
-    width: 300,
-    height: 48,
+    width: s(300),
+    height: s(48),
     backgroundColor: "#FFFAF6",
-    borderRadius: 30,
+    borderRadius: s(30),
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
@@ -80,9 +80,8 @@ const styles = StyleSheet.create({
   },
   buttonRegText: {
     color: "#A37D5D",
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "400",
     fontFamily: "Inter",
-    lineHeight: 24,
   },
 });

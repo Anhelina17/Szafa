@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { supabase } from "../supabaseClient";
+import { fs, s } from "../utils/scale";
 
 const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
   <path d="M12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3Z" stroke="#40A421" stroke-width="2"/>
@@ -228,21 +229,21 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: s(20),
     backgroundColor: "#FFFAF6",
   },
   title: {
-    fontSize: 24,
+    fontSize: fs(24),
     fontWeight: "700",
     color: "#202C39",
     fontFamily: "Inter",
-    lineHeight: 32,
+    lineHeight: fs(32),
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: s(24),
   },
   inputWrapper: {
-    width: 300,
-    marginBottom: 12,
+    width: s(300),
+    marginBottom: s(12),
   },
   inputRow: {
     position: "relative",
@@ -250,11 +251,11 @@ const styles = StyleSheet.create({
   },
   input: {
     width: "100%",
-    height: 48,
-    borderRadius: 30,
-    paddingHorizontal: 16,
-    paddingRight: 48,
-    fontSize: 16,
+    height: s(48),
+    borderRadius: s(30),
+    paddingHorizontal: s(16),
+    paddingRight: s(48),
+    fontSize: fs(16),
     fontFamily: "Inter",
     fontWeight: "400",
     textAlignVertical: "center",
@@ -276,39 +277,39 @@ const styles = StyleSheet.create({
   },
   checkIcon: {
     position: "absolute",
-    right: 12,
+    right: s(12),
   },
   errorText: {
     color: "#E05744",
-    fontSize: 12,
+    fontSize: fs(12),
     fontFamily: "Inter",
     fontWeight: "400",
-    lineHeight: 20,
+    lineHeight: fs(20),
     marginTop: 0,
-    paddingHorizontal: 8,
+    paddingHorizontal: s(8),
   },
   buttonPrimary: {
-    width: 300,
-    height: 48,
+    width: s(300),
+    height: s(48),
     backgroundColor: "#A37D5D",
-    borderRadius: 30,
+    borderRadius: s(30),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 4,
-    marginBottom: 8,
+    marginTop: s(4),
+    marginBottom: s(8),
   },
   buttonPrimaryText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "400",
     fontFamily: "Inter",
-    lineHeight: 24,
+    lineHeight: fs(24),
   },
   buttonSecondary: {
-    width: 300,
-    height: 48,
+    width: s(300),
+    height: s(48),
     backgroundColor: "#FFFAF6",
-    borderRadius: 30,
+    borderRadius: s(30),
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
@@ -316,9 +317,9 @@ const styles = StyleSheet.create({
   },
   buttonSecondaryText: {
     color: "#A37D5D",
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "400",
     fontFamily: "Inter",
-    lineHeight: 24,
+    lineHeight: fs(24),
   },
 });
