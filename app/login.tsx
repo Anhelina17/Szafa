@@ -1,126 +1,233 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { supabase } from "../supabaseClient";
 
 export default function LoginScreen() {
   const router = useRouter() as any;
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [generalError, setGeneralError] = useState("");
+
+  const validate = () => {
+    let valid = true;
+    setEmailError("");
+    setPasswordError("");
+    setGeneralError("");
+
+    if (!email.trim()) {
+      setEmailError("Wpisz adres e-mail");
+      valid = false;
+    }
+    if (!password.trim()) {
+      setPasswordError("Wpisz hasło");
+      valid = false;
+    }
+    return valid;
+  };
 
   const handleLogin = async () => {
+    if (!validate()) return;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-
     if (error) {
-      alert(error.message);
+      setGeneralError("Nieprawidłowy e-mail lub hasło");
     } else {
       router.replace("/wardrobe/wardrobe");
     }
   };
 
+  const bothFieldsError = !!(generalError);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Logowanie</Text>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.title}>Logowanie</Text>
 
-      <TextInput 
-      style={styles.input} 
-      placeholder="Email" 
-      placeholderTextColor='#9D9D9D' 
-      onChangeText={setEmail} />
-      
-      <TextInput 
-      style={styles.input} 
-      placeholder="Hasło" 
-      placeholderTextColor='#9D9D9D' 
-      secureTextEntry 
-      onChangeText={setPassword} />
+        {/* Email */}
+        <View style={styles.inputWrapper}>
+          <TextInput
+            style={[
+              styles.input,
+              (emailError && emailError.trim()) || bothFieldsError ? styles.inputError : null,
+            ]}
+            placeholder="Email"
+            placeholderTextColor={(emailError && emailError.trim()) || bothFieldsError ? "#E05744" : "#9D9D9D"}
+            autoCapitalize="none"
+            autoComplete="off"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={(t) => {
+              setEmail(t);
+              setEmailError("");
+              setGeneralError("");
+            }}
+          />
+          {emailError && emailError.trim() ? (
+            <Text style={styles.errorText}>{emailError}</Text>
+          ) : null}
+        </View>
 
-      <TouchableOpacity style={styles.buttonCont} onPress={handleLogin}>
-        <Text style={styles.buttonContText}>Kontynuuj</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.buttonBack} onPress={() => {
-          router.push("/register");
-        }}>
-        <Text style={styles.buttonBackText}>Wróć do rejestracji</Text>
-      </TouchableOpacity>
-    </View>
+        {/* Password */}
+        <View style={[styles.inputWrapper, { marginBottom: 0 }]}>
+          <TextInput
+            style={[
+              styles.input,
+              (passwordError && passwordError.trim()) || bothFieldsError ? styles.inputError : null,
+            ]}
+            placeholder="Hasło"
+            placeholderTextColor={(passwordError && passwordError.trim()) || bothFieldsError ? "#E05744" : "#9D9D9D"}
+            secureTextEntry
+            autoComplete="off"
+            value={password}
+            onChangeText={(t) => {
+              setPassword(t);
+              setPasswordError("");
+              setGeneralError("");
+            }}
+          />
+          {passwordError && passwordError.trim() ? (
+            <Text style={styles.errorText}>{passwordError}</Text>
+          ) : null}
+          {/* generalError вплотную под полем пароля */}
+          {generalError ? (
+            <Text style={styles.errorText}>{generalError}</Text>
+          ) : null}
+        </View>
+
+        <View style={{ height: 12 }} />
+
+        {/* Kontynuuj */}
+        <TouchableOpacity style={styles.buttonPrimary} onPress={handleLogin}>
+          <Text style={styles.buttonPrimaryText}>Kontynuuj</Text>
+        </TouchableOpacity>
+
+        {/* Wróć do rejestracji */}
+        <TouchableOpacity
+          style={styles.buttonSecondary}
+          onPress={() => router.push("/register")}
+        >
+          <Text style={styles.buttonSecondaryText}>Wróć do rejestracji</Text>
+        </TouchableOpacity>
+
+        {/* Nie pamiętasz hasła — zawsze widoczne */}
+        <TouchableOpacity onPress={() => router.push("/resetPassword")}>
+          <Text style={styles.forgotPassword}>Nie pamiętasz hasła?</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#FFFAF6",
+  },
+  container: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     backgroundColor: "#FFFAF6",
   },
   title: {
-    width: "100%",
     fontSize: 24,
     fontWeight: "700",
     color: "#202C39",
     fontFamily: "Inter",
-    marginBottom: 25,
+    lineHeight: 32,
     textAlign: "center",
+    marginBottom: 24,
+  },
+  inputWrapper: {
+    width: 300,
+    marginBottom: 12,
   },
   input: {
+    width: "100%",
+    height: 48,
+    borderRadius: 30,
+    paddingHorizontal: 16,
+    fontSize: 16,
     fontFamily: "Inter",
-    width: '70%',
-    paddingVertical: 15,
-    borderRadius: 30,
-    marginVertical: 10,
-    padding: 16,
-    marginBottom: 10,
-    color: '#000',
-    backgroundColor: '#EDE1D7',
-    borderWidth: 1,
+    fontWeight: "400",
+    textAlignVertical: "center",
+    includeFontPadding: false,
+    color: "#202C39",
+    backgroundColor: "#EDE1D7",
+    borderWidth: 2,
     borderColor: "#EDE1D7",
-    shadowColor: "#EDE1D7",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
-  buttonCont: {
-    width: '70%',
-    backgroundColor: '#A37D5D',
-    paddingVertical: 15,
+  inputError: {
+    borderColor: "#E05744",
+    backgroundColor: "#FFFAF6",
+    color: "#E05744",
+  },
+  errorText: {
+    color: "#E05744",
+    fontSize: 12,
+    fontFamily: "Inter",
+    fontWeight: "400",
+    lineHeight: 20,
+    marginTop: 0,
+    paddingHorizontal: 8,
+  },
+  buttonPrimary: {
+    width: 300,
+    height: 48,
+    backgroundColor: "#A37D5D",
     borderRadius: 30,
-    alignItems: 'center',
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: "#A37D5D",
-    shadowColor: "#A37D5D",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 8,
   },
-  buttonContText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '400',
-    fontFamily: "Inter"
+  buttonPrimaryText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "400",
+    fontFamily: "Inter",
+    lineHeight: 24,
   },
-  buttonBack: {
-    width: '70%',
-    backgroundColor: '##FFFAF6',
-    paddingVertical: 15,
+  buttonSecondary: {
+    width: 300,
+    height: 48,
+    backgroundColor: "#FFFAF6",
     borderRadius: 30,
-    alignItems: 'center',
-    marginVertical: 10,
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 2,
     borderColor: "#A37D5D",
-    shadowColor: "#A37D5D",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    marginBottom: 16,
   },
-  buttonBackText: {
-    color: '#A37D5D',
-    fontSize: 18,
-    fontWeight: '400',
-    fontFamily: "Inter"
-  }
+  buttonSecondaryText: {
+    color: "#A37D5D",
+    fontSize: 16,
+    fontWeight: "400",
+    fontFamily: "Inter",
+    lineHeight: 24,
+  },
+  forgotPassword: {
+    color: "#A37D5D",
+    fontSize: 16,
+    fontWeight: "400",
+    fontFamily: "Inter",
+    lineHeight: 24,
+  },
 });

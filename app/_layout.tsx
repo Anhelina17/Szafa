@@ -1,13 +1,10 @@
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-
 export default function RootLayout() {
   const [loaded] = useFonts({
     Inter: require("../assets/fonts/Inter/Inter-VariableFont_opsz,wght.ttf"),
   });
-
   if (!loaded) return null;
-
   return (
     <Stack
       screenOptions={{
@@ -16,11 +13,13 @@ export default function RootLayout() {
         headerTitleStyle: { fontWeight: "700", fontFamily: "Inter" },
         headerBackTitle: "Wróć",
         headerShadowVisible: false,
+        gestureEnabled: false,
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="register" options={{ headerShown: false }} />
+      <Stack.Screen name="resetPassword" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="home" options={{ headerShown: false }} />
       <Stack.Screen name="camera" options={{ title: "Aparat" }} />
