@@ -1,17 +1,21 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SvgXml } from "react-native-svg";
 import { supabase } from "../../supabaseClient";
+
+const backIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <path d="M16.0603 2.45407C16.3415 2.73536 16.4995 3.11683 16.4995 3.51457C16.4995 3.91232 16.3415 4.29378 16.0603 4.57507L8.63533 12.0001L16.0603 19.4251C16.3336 19.708 16.4848 20.0869 16.4813 20.4802C16.4779 20.8735 16.3202 21.2497 16.0421 21.5278C15.7639 21.8059 15.3877 21.9637 14.9944 21.9671C14.6011 21.9705 14.2222 21.8193 13.9393 21.5461L5.45383 13.0606C5.17262 12.7793 5.01465 12.3978 5.01465 12.0001C5.01465 11.6023 5.17262 11.2209 5.45383 10.9396L13.9393 2.45407C14.2206 2.17287 14.6021 2.01489 14.9998 2.01489C15.3976 2.01489 15.779 2.17287 16.0603 2.45407Z" fill="#202C39"/>
+</svg>`;
 
 type ImageItem = {
   id: string;
@@ -35,6 +39,7 @@ export default function OutfitPreviewScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const [isAutoLayout, setIsAutoLayout] = useState(false);
   const [noClothingDetected, setNoClothingDetected] = useState(false);
+  const [savedModalVisible, setSavedModalVisible] = useState(false);
 
   useEffect(() => {
     if (images.length > 0) {
@@ -175,9 +180,10 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
 
       if (outfitError) throw outfitError;
 
-      const items = images.map((img) => ({
+      const items = moodboard.map((item) => ({
         outfit_id: outfit.id,
-        image_id: img.id,
+        image_id: item.image.id,
+        position: item.position,
       }));
 
       const { error: itemsError } = await supabase
@@ -186,23 +192,9 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
 
       if (itemsError) throw itemsError;
 
-      Alert.alert(
-        "Zapisano!",
-        "Stylizacja została zapisana.",
-        [
-          {
-            text: "Zobacz stylizacje",
-            onPress: () => router.push("/outfits/outfits"),
-          },
-          {
-            text: "Wróć do domu",
-            onPress: () => router.push("/wardrobe/wardrobe"),
-          },
-        ]
-      );
+      setSavedModalVisible(true);
     } catch (e) {
       console.error("Błąd zapisywania:", e);
-      Alert.alert("Błąd", "Nie udało się zapisać stylizacji.");
     } finally {
       setIsSaving(false);
     }
@@ -219,10 +211,9 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#202C39" />
+          <SvgXml xml={backIcon} width={24} height={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Twoja stylizacja</Text>
-        <View style={{ width: 24 }} />
       </View>
 
       {isLoadingAI ? (
@@ -234,7 +225,6 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {(isAutoLayout || noClothingDetected) && (
             <View style={styles.autoBanner}>
-              <Ionicons name="information-circle-outline" size={20} color="#A37D5D" />
               <Text style={styles.autoText}>
                 {noClothingDetected
                   ? "Nie rozpoznano odzieży — przedmioty zostały ułożone automatycznie."
@@ -321,6 +311,41 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
           </TouchableOpacity>
         </ScrollView>
       )}
+
+      {/* Modal po zapisaniu */}
+      <Modal
+        visible={savedModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSavedModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Stylizacja została zapisana!</Text>
+            <TouchableOpacity
+              style={styles.modalButtonSafeFull}
+              onPress={() => {
+                setSavedModalVisible(false);
+                router.push({
+                  pathname: "/outfits/outfits",
+                  params: { fromCreation: "true" },
+                });
+              }}
+            >
+              <Text style={styles.modalButtonSafeFullText}>Zobacz stylizacje</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalButtonDangerFull}
+              onPress={() => {
+                setSavedModalVisible(false);
+                router.push("/wardrobe/wardrobe");
+              }}
+            >
+              <Text style={styles.modalButtonDangerText}>Wróć na ekran główny</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -329,22 +354,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFAF6",
+    paddingTop: 56,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 56,
+    paddingHorizontal: 20,
     paddingBottom: 16,
-    backgroundColor: "#FFFAF6",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E8DDD4",
+    gap: 8,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 24,
     fontWeight: "700",
     color: "#202C39",
+    fontFamily: "Inter",
   },
   center: {
     flex: 1,
@@ -356,6 +379,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#A37D5D",
     textAlign: "center",
+    fontFamily: "Inter",
   },
   scrollContent: {
     padding: 16,
@@ -375,12 +399,14 @@ const styles = StyleSheet.create({
     color: "#A37D5D",
     fontSize: 14,
     textAlign: "center",
+    fontFamily: "Inter",
   },
   retryText: {
     color: "#A37D5D",
     fontWeight: "700",
     fontSize: 14,
     textDecorationLine: "underline",
+    fontFamily: "Inter",
   },
   moodboard: {
     backgroundColor: "#ffffff",
@@ -431,7 +457,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: "center",
-    margin: 16,
+    marginHorizontal: 16,
   },
   saveButtonDisabled: {
     opacity: 0.6,
@@ -440,5 +466,57 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "700",
+    fontFamily: "Inter",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    backgroundColor: "#EDE1D7",
+    borderRadius: 30,
+    padding: 24,
+    width: 353,
+    alignItems: "center",
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#202C39",
+    fontFamily: "Inter",
+    textAlign: "center",
+    lineHeight: 24,
+  },
+  modalButtonSafeFull: {
+    width: 305,
+    height: 48,
+    borderRadius: 30,
+    backgroundColor: "#A37D5D",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtonSafeFullText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
+  },
+  modalButtonDangerFull: {
+    width: 305,
+    height: 48,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#E05744",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalButtonDangerText: {
+    color: "#E05744",
+    fontSize: 16,
+    fontFamily: "Inter",
+    fontWeight: "400",
   },
 });
