@@ -72,15 +72,14 @@ export const addImageToFolders = async (
 export const getImagesByFolder = async (folderId: string) => {
   const { data, error } = await supabase
     .from("image_folders")
-    .select("images(id, image_url, is_favorite)")
+    .select("images(id, image_url, is_favorite, created_at)")
     .eq("folder_id", folderId);
-
   if (error) {
     console.log("GET IMAGES ERROR:", error);
     throw error;
   }
-
-  return data?.map((item: any) => item.images).filter(Boolean) ?? [];
+  const images = data?.map((item: any) => item.images).filter(Boolean) ?? [];
+  return images.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 };
 
 export const deleteImage = async (imageId: string, imageUrl: string) => {

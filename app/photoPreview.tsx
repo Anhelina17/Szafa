@@ -66,15 +66,12 @@ export default function PhotoPreviewScreen() {
   if (resultUri) {
     return (
       <View style={styles.fullScreenBeige}>
-        <ImageBackground
-          source={require("../assets/images/gradient-header.png")}
-          style={styles.gradientHeader}
-        >
+        <View style={styles.plainHeader}>
           <TouchableOpacity onPress={() => router.back()} style={styles.headerRow}>
             <SvgXml xml={backIconDark} width={s(24)} height={s(24)} />
             <Text style={styles.headerTitleDark}>Podgląd zdjęcia</Text>
           </TouchableOpacity>
-        </ImageBackground>
+        </View>
 
         <Image source={{ uri: resultUri }} style={styles.image} resizeMode="contain" />
 
@@ -127,6 +124,14 @@ const styles = StyleSheet.create({
   fullScreenBeige: {
     flex: 1,
     backgroundColor: "#FFFAF6",
+  },
+  plainHeader: {
+    position: "absolute",
+    top: s(64),
+    left: s(20),
+    zIndex: 10,
+    flexDirection: "row",
+    alignItems: "center",
   },
   gradientHeader: {
     position: "absolute",

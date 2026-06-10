@@ -1,7 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -51,6 +52,15 @@ export default function SelectFolderScreen() {
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<any>(null);
   const [newFolderName, setNewFolderName] = useState("");
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+
+  const showToast = () => {
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      Animated.delay(1000),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start();
+  };
 
   useEffect(() => {
     loadFolders();
@@ -188,6 +198,10 @@ export default function SelectFolderScreen() {
 
 
       </ScrollView>
+
+      <Animated.View style={[styles.toast, { opacity: toastOpacity }]}>
+        <Text style={styles.toastText}>Zdjęcie dodane! ✓</Text>
+      </Animated.View>
 
       {/* Modal opcji folderu */}
       <Modal
@@ -331,9 +345,9 @@ export default function SelectFolderScreen() {
                 autoFocus
               />
               <TouchableOpacity
-                style={[styles.modalButton, newFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive]}
+                style={[styles.modalButton, newFolderName.trim() && newFolderName.trim() !== selectedFolder?.name ? styles.modalButtonActive : styles.modalButtonInactive]}
                 onPress={handleRenameConfirm}
-                disabled={!newFolderName.trim()}
+                disabled={!newFolderName.trim() || newFolderName.trim() === selectedFolder?.name}
               >
                 <Text style={styles.modalButtonText}>Zapisz</Text>
               </TouchableOpacity>
@@ -406,4 +420,20 @@ const styles = StyleSheet.create({
   deleteModalButtonSafeText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
   deleteModalButtonDanger: { width: s(152), height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
   deleteModalButtonDangerText: { color: "#E05744", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  toast: {
+    position: "absolute",
+    bottom: s(40),
+    alignSelf: "center",
+    backgroundColor: "#202C39",
+    paddingHorizontal: s(24),
+    paddingVertical: s(12),
+    borderRadius: s(30),
+    zIndex: 100,
+  },
+  toastText: {
+    color: "#FFFAF6",
+    fontSize: fs(16),
+    fontFamily: "Inter",
+    fontWeight: "400",
+  },
 });

@@ -43,9 +43,7 @@ export default function WardrobeScreen() {
   const [newFolderName, setNewFolderName] = useState("");
   const [createFolderName, setCreateFolderName] = useState("");
 
-  useEffect(() => {
-    loadFolders();
-  }, []);
+  useEffect(() => { loadFolders(); }, []);
 
   const loadFolders = async () => {
     try {
@@ -94,6 +92,7 @@ export default function WardrobeScreen() {
 
   const handleRenameConfirm = async () => {
     if (!newFolderName.trim() || !selectedFolder) return;
+    if (newFolderName.trim() === selectedFolder.name) return;
     try {
       await renameFolder(selectedFolder.id, newFolderName.trim());
       setRenameModalVisible(false);
@@ -103,6 +102,9 @@ export default function WardrobeScreen() {
       Alert.alert("Błąd", "Nie udało się zmienić nazwy folderu");
     }
   };
+
+  // Czy nazwa zmieniona
+  const renameChanged = newFolderName.trim() !== "" && newFolderName.trim() !== selectedFolder?.name;
 
   if (isLoading) {
     return (
@@ -116,10 +118,7 @@ export default function WardrobeScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Ubrania</Text>
 
-      <TouchableOpacity
-        style={styles.createButton}
-        onPress={() => setCreateModalVisible(true)}
-      >
+      <TouchableOpacity style={styles.createButton} onPress={() => setCreateModalVisible(true)}>
         <SvgXml xml={plusIcon} width={30} height={30} />
         <Text style={styles.createButtonText}>Stwórz folder</Text>
       </TouchableOpacity>
@@ -133,10 +132,7 @@ export default function WardrobeScreen() {
         renderItem={({ item }: { item: any }) => {
           if (item.isSpecial) {
             return (
-              <TouchableOpacity
-                style={styles.folder}
-                onPress={() => router.push("/wardrobe/favorites/favorites")}
-              >
+              <TouchableOpacity style={styles.folder} onPress={() => router.push("/wardrobe/favorites/favorites")}>
                 <SvgXml xml={favoritesIcon} width={40} height={40} />
                 <Text style={styles.folderText}>Ulubione</Text>
               </TouchableOpacity>
@@ -145,12 +141,7 @@ export default function WardrobeScreen() {
           return (
             <TouchableOpacity
               style={styles.folder}
-              onPress={() =>
-                router.push({
-                  pathname: "/wardrobe/folderView",
-                  params: { folderId: item.id, folderName: item.name },
-                })
-              }
+              onPress={() => router.push({ pathname: "/wardrobe/folderView", params: { folderId: item.id, folderName: item.name } })}
               onLongPress={() => handleLongPress(item)}
               delayLongPress={500}
             >
@@ -161,38 +152,24 @@ export default function WardrobeScreen() {
       />
 
       {/* Modal opcji folderu */}
-      <Modal
-        visible={folderOptionsModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFolderOptionsModalVisible(false)}
-      >
+      <Modal visible={folderOptionsModalVisible} transparent animationType="fade" onRequestClose={() => setFolderOptionsModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{selectedFolder?.name}</Text>
-              <TouchableOpacity
-                style={styles.modalCloseButton}
-                onPress={() => setFolderOptionsModalVisible(false)}
-              >
+              <TouchableOpacity style={styles.modalCloseButton} onPress={() => setFolderOptionsModalVisible(false)}>
                 <SvgXml xml={closeIcon} width={24} height={24} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalSubtitle}>Co chcesz zrobić z tym folderem?</Text>
-            <TouchableOpacity
-              style={styles.modalButtonPrimary}
-              onPress={() => {
-                setFolderOptionsModalVisible(false);
-                setNewFolderName(selectedFolder?.name ?? "");
-                setRenameModalVisible(true);
-              }}
-            >
+            <TouchableOpacity style={styles.modalButtonPrimary} onPress={() => {
+              setFolderOptionsModalVisible(false);
+              setNewFolderName(selectedFolder?.name ?? "");
+              setRenameModalVisible(true);
+            }}>
               <Text style={styles.modalButtonPrimaryText}>Zmień nazwę</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButtonDanger}
-              onPress={handleDelete}
-            >
+            <TouchableOpacity style={styles.modalButtonDanger} onPress={handleDelete}>
               <Text style={styles.modalButtonDangerText}>Usuń folder</Text>
             </TouchableOpacity>
           </View>
@@ -200,28 +177,15 @@ export default function WardrobeScreen() {
       </Modal>
 
       {/* Modal potwierdzenia usunięcia */}
-      <Modal
-        visible={deleteConfirmModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeleteConfirmModalVisible(false)}
-      >
+      <Modal visible={deleteConfirmModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteConfirmModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.deleteModalBox}>
-            <Text style={styles.deleteModalTitle}>
-              Czy na pewno chcesz usunąć folder "{selectedFolder?.name}"?
-            </Text>
+            <Text style={styles.deleteModalTitle}>Czy na pewno chcesz usunąć folder "{selectedFolder?.name}"?</Text>
             <View style={styles.deleteModalButtons}>
-              <TouchableOpacity
-                style={styles.deleteModalButtonSafe}
-                onPress={() => setDeleteConfirmModalVisible(false)}
-              >
+              <TouchableOpacity style={styles.deleteModalButtonSafe} onPress={() => setDeleteConfirmModalVisible(false)}>
                 <Text style={styles.deleteModalButtonSafeText}>Zostaw</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteModalButtonDanger}
-                onPress={handleDeleteConfirm}
-              >
+              <TouchableOpacity style={styles.deleteModalButtonDanger} onPress={handleDeleteConfirm}>
                 <Text style={styles.deleteModalButtonDangerText}>Usuń</Text>
               </TouchableOpacity>
             </View>
@@ -229,27 +193,14 @@ export default function WardrobeScreen() {
         </View>
       </Modal>
 
-      {/* Modal tworzenia nowego folderu */}
-      <Modal
-        visible={createModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCreateModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
+      {/* Modal tworzenia folderu */}
+      <Modal visible={createModalVisible} transparent animationType="fade" onRequestClose={() => setCreateModalVisible(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Stwórz folder</Text>
-                <TouchableOpacity
-                  style={styles.modalCloseButton}
-                  onPress={() => {
-                    setCreateModalVisible(false);
-                    setCreateFolderName("");
-                  }}>
+                <TouchableOpacity style={styles.modalCloseButton} onPress={() => { setCreateModalVisible(false); setCreateFolderName(""); }}>
                   <SvgXml xml={closeIcon} width={24} height={24} />
                 </TouchableOpacity>
               </View>
@@ -262,10 +213,7 @@ export default function WardrobeScreen() {
                 autoFocus
               />
               <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  createFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive,
-                ]}
+                style={[styles.modalButton, createFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive]}
                 onPress={handleCreateConfirm}
                 disabled={!createFolderName.trim()}
               >
@@ -276,24 +224,14 @@ export default function WardrobeScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Modal zmiany nazwy folderu */}
-      <Modal
-        visible={renameModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setRenameModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
+      {/* Modal zmiany nazwy */}
+      <Modal visible={renameModalVisible} transparent animationType="fade" onRequestClose={() => setRenameModalVisible(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Zmień nazwę</Text>
-                <TouchableOpacity
-                  style={styles.modalCloseButton}
-                  onPress={() => setRenameModalVisible(false)}>
+                <TouchableOpacity style={styles.modalCloseButton} onPress={() => setRenameModalVisible(false)}>
                   <SvgXml xml={closeIcon} width={24} height={24} />
                 </TouchableOpacity>
               </View>
@@ -305,13 +243,11 @@ export default function WardrobeScreen() {
                 placeholderTextColor="#9D9D9D"
                 autoFocus
               />
+              {/* Aktywna tylko gdy nazwa zmieniona */}
               <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  newFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive,
-                ]}
+                style={[styles.modalButton, renameChanged ? styles.modalButtonActive : styles.modalButtonInactive]}
                 onPress={handleRenameConfirm}
-                disabled={!newFolderName.trim()}
+                disabled={!renameChanged}
               >
                 <Text style={styles.modalButtonText}>Zapisz</Text>
               </TouchableOpacity>
@@ -326,209 +262,34 @@ export default function WardrobeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFAF6",
-    paddingTop: 56,
-    paddingHorizontal: 20,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    lineHeight: 26,
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  createButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderWidth: 2,
-    borderColor: "#A37D5D",
-    borderStyle: "dashed",
-    borderRadius: 30,
-    height: 50,
-    marginBottom: 16,
-  },
-  createButtonText: {
-    color: "#A37D5D",
-    fontSize: 16,
-    fontWeight: "700",
-    fontFamily: "Inter",
-  },
-  row: {
-    justifyContent: "space-between",
-    marginBottom: 19,
-  },
-  folder: {
-    width: "47%",
-    aspectRatio: 1,
-    borderRadius: 30,
-    backgroundColor: "rgba(163, 125, 93, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  folderText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#A37D5D",
-    fontFamily: "Inter",
-    marginTop: 6,
-    textAlign: "center",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBox: {
-    backgroundColor: "#EDE1D7",
-    borderRadius: 30,
-    padding: 24,
-    width: 353,
-    alignItems: "center",
-    gap: 12,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    position: "relative",
-  },
-  modalCloseButton: {
-    position: "absolute",
-    right: 0,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    flex: 1,
-    textAlign: "center",
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    fontWeight: "400",
-    color: "#202C39",
-    fontFamily: "Inter",
-    textAlign: "center",
-  },
-  modalButtonPrimary: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
-    backgroundColor: "#A37D5D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonPrimaryText: {
-    color: "#FFFAF6",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  modalButtonDanger: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "#E05744",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonDangerText: {
-    color: "#E05744",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  modalInput: {
-    width: 305,
-    backgroundColor: "#FFFAF6",
-    borderRadius: 30,
-    padding: 12,
-    paddingHorizontal: 20,
-    fontSize: 16,
-    fontFamily: "Inter",
-    color: "#202C39",
-  },
-  modalButton: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonActive: {
-    backgroundColor: "#A37D5D",
-  },
-  modalButtonInactive: {
-    backgroundColor: "#9D9D9D",
-  },
-  modalButtonText: {
-    color: "#FFFAF6",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  deleteModalBox: {
-    backgroundColor: "#EDE1D7",
-    borderRadius: 30,
-    padding: 24,
-    width: 353,
-    alignItems: "center",
-    gap: 16,
-  },
-  deleteModalTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  deleteModalButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  deleteModalButtonSafe: {
-    width: 152,
-    height: 50,
-    borderRadius: 30,
-    backgroundColor: "#A37D5D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deleteModalButtonSafeText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  deleteModalButtonDanger: {
-    width: 152,
-    height: 50,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "#E05744",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  deleteModalButtonDangerText: {
-    color: "#E05744",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
+  container: { flex: 1, backgroundColor: "#FFFAF6", paddingTop: 56, paddingHorizontal: 20 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  title: { fontSize: 18, fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: 26, textAlign: "center", marginBottom: 16 },
+  createButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 2, borderColor: "#A37D5D", borderStyle: "dashed", borderRadius: 30, height: 50, marginBottom: 16 },
+  createButtonText: { color: "#A37D5D", fontSize: 16, fontWeight: "700", fontFamily: "Inter" },
+  row: { justifyContent: "space-between", marginBottom: 19 },
+  folder: { width: "47%", aspectRatio: 1, borderRadius: 30, backgroundColor: "rgba(163, 125, 93, 0.2)", alignItems: "center", justifyContent: "center" },
+  folderText: { fontSize: 16, fontWeight: "700", color: "#A37D5D", fontFamily: "Inter", marginTop: 6, textAlign: "center" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 12 },
+  modalHeader: { flexDirection: "row", justifyContent: "center", alignItems: "center", width: "100%", position: "relative" },
+  modalCloseButton: { position: "absolute", right: 0 },
+  modalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", flex: 1, textAlign: "center" },
+  modalSubtitle: { fontSize: 16, fontWeight: "400", color: "#202C39", fontFamily: "Inter", textAlign: "center" },
+  modalButtonPrimary: { width: 305, height: 48, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonPrimaryText: { color: "#FFFAF6", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDanger: { width: 305, height: 48, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonDangerText: { color: "#E05744", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalInput: { width: 305, backgroundColor: "#FFFAF6", borderRadius: 30, padding: 12, paddingHorizontal: 20, fontSize: 16, fontFamily: "Inter", color: "#202C39" },
+  modalButton: { width: 305, height: 48, borderRadius: 30, justifyContent: "center", alignItems: "center" },
+  modalButtonActive: { backgroundColor: "#A37D5D" },
+  modalButtonInactive: { backgroundColor: "#9D9D9D" },
+  modalButtonText: { color: "#FFFAF6", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  deleteModalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 16 },
+  deleteModalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: 24 },
+  deleteModalButtons: { flexDirection: "row", gap: 12 },
+  deleteModalButtonSafe: { width: 152, height: 50, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  deleteModalButtonSafeText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  deleteModalButtonDanger: { width: 152, height: 50, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  deleteModalButtonDangerText: { color: "#E05744", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
 });
