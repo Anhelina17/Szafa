@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -12,10 +11,12 @@ import {
   View,
 } from "react-native";
 import { SvgXml } from "react-native-svg";
-import { deleteOutfit, getOutfits, Outfit, OutfitImage } from "../../services/outfits";
+import TabBar from "../../components/TabBar";
+import { Outfit, OutfitImage, deleteOutfit, getOutfits } from "../../services/outfits";
+import { fs, s } from "../../utils/scale";
 
 const backIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <path d="M16.0603 2.45407C16.3415 2.73536 16.4995 3.11683 16.4995 3.51457C16.4995 3.91232 16.3415 4.29378 16.0603 4.57507L8.63533 12.0001L16.0603 19.4251C16.3336 19.708 16.4848 20.0869 16.4813 20.4802C16.4779 20.8735 16.3202 21.2497 16.0421 21.5278C15.7639 21.8059 15.3877 21.9637 14.9944 21.9671C14.6011 21.9705 14.2222 21.8193 13.9393 21.5461L5.45383 13.0606C5.17262 12.7793 5.01465 12.3978 5.01465 12.0001C5.01465 11.6023 5.17262 11.2209 5.45383 10.9396L13.9393 2.45407C14.2206 2.17287 14.6021 2.01489 14.9998 2.01489C15.3976 2.01489 15.779 2.17287 16.0603 2.45407Z" fill="#202C39"/>
+  <path d="M16.0604 2.45407C16.3417 2.73536 16.4996 3.11683 16.4996 3.51457C16.4996 3.91232 16.3417 4.29378 16.0604 4.57507L8.63545 12.0001L16.0604 19.4251C16.3337 19.708 16.4849 20.0869 16.4815 20.4802C16.478 20.8735 16.3203 21.2497 16.0422 21.5278C15.7641 21.8059 15.3878 21.9637 14.9946 21.9671C14.6013 21.9705 14.2224 21.8193 13.9395 21.5461L5.45395 13.0606C5.17274 12.7793 5.01477 12.3978 5.01477 12.0001C5.01477 11.6023 5.17274 11.2209 5.45395 10.9396L13.9395 2.45407C14.2207 2.17287 14.6022 2.01489 15 2.01489C15.3977 2.01489 15.7792 2.17287 16.0604 2.45407Z" fill="#202C39"/>
 </svg>`;
 
 export default function OutfitsScreen() {
@@ -72,28 +73,20 @@ export default function OutfitsScreen() {
     }
   };
 
-  const MoodboardLayout = ({
-    images,
-    imageHeight,
-  }: {
-    images: OutfitImage[];
-    imageHeight: number;
-  }) => {
-    const mainItems = images.filter(
-      (i) => i.position === "top" || i.position === "middle"
-    );
+  const MoodboardLayout = ({ images }: { images: OutfitImage[] }) => {
+    const mainItems = images.filter((i) => i.position === "top" || i.position === "middle");
     const accentItems = images.filter((i) => i.position === "accent");
     const bottomItems = images.filter((i) => i.position === "bottom");
     const hasSideItems = accentItems.length > 0 || bottomItems.length > 0;
 
     if (!hasSideItems) {
       return (
-        <View style={styles.previewSingle}>
+        <View style={{ flex: 1, backgroundColor: "#FFFAF6" }}>
           {mainItems.map((img) => (
             <Image
               key={img.id}
               source={{ uri: img.image_url }}
-              style={[styles.previewImageFull, { height: imageHeight }]}
+              style={{ width: "100%", flex: 1, backgroundColor: "#FFFAF6" }}
               resizeMode="contain"
             />
           ))}
@@ -102,45 +95,27 @@ export default function OutfitsScreen() {
     }
 
     return (
-      <View style={styles.previewLayout}>
-        <View style={styles.previewLeft}>
+      <View style={{ flex: 1, flexDirection: "row", backgroundColor: "#FFFAF6" }}>
+        <View style={{ flex: 1.3 }}>
           {mainItems.map((img) => (
             <Image
               key={img.id}
               source={{ uri: img.image_url }}
-              style={[styles.previewImageLeft, { height: imageHeight }]}
+              style={{ width: "100%", flex: 1, backgroundColor: "#FFFAF6" }}
               resizeMode="contain"
             />
           ))}
         </View>
-        <View style={styles.previewRight}>
+        <View style={{ flex: 0.7 }}>
           <View style={{ flex: 1 }}>
-            {accentItems.length > 0 ? (
-              accentItems.map((img) => (
-                <Image
-                  key={img.id}
-                  source={{ uri: img.image_url }}
-                  style={[styles.previewImageRight, { height: imageHeight }]}
-                  resizeMode="contain"
-                />
-              ))
-            ) : (
-              <View style={{ height: imageHeight, backgroundColor: "#ffffff" }} />
-            )}
+            {accentItems.length > 0 ? accentItems.map((img) => (
+              <Image key={img.id} source={{ uri: img.image_url }} style={{ width: "100%", flex: 1, backgroundColor: "#FFFAF6" }} resizeMode="contain" />
+            )) : <View style={{ flex: 1, backgroundColor: "#FFFAF6" }} />}
           </View>
           <View style={{ flex: 1 }}>
-            {bottomItems.length > 0 ? (
-              bottomItems.map((img) => (
-                <Image
-                  key={img.id}
-                  source={{ uri: img.image_url }}
-                  style={[styles.previewImageRight, { height: imageHeight }]}
-                  resizeMode="contain"
-                />
-              ))
-            ) : (
-              <View style={{ height: imageHeight, backgroundColor: "#ffffff" }} />
-            )}
+            {bottomItems.length > 0 ? bottomItems.map((img) => (
+              <Image key={img.id} source={{ uri: img.image_url }} style={{ width: "100%", flex: 1, backgroundColor: "#FFFAF6" }} resizeMode="contain" />
+            )) : <View style={{ flex: 1, backgroundColor: "#FFFAF6" }} />}
           </View>
         </View>
       </View>
@@ -159,18 +134,15 @@ export default function OutfitsScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleBack}>
-          <SvgXml xml={backIcon} width={24} height={24} />
+          <SvgXml xml={backIcon} width={s(24)} height={s(24)} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Moje Stylizacje</Text>
+        <Text style={styles.headerTitle}>Stylizacje</Text>
       </View>
 
       {outfits.length === 0 ? (
         <View style={styles.center}>
-          <Ionicons name="shirt-outline" size={64} color="#D8CFC4" />
           <Text style={styles.emptyTitle}>Brak stylizacji</Text>
-          <Text style={styles.emptySubtitle}>
-            Stwórz swoją pierwszą stylizację!
-          </Text>
+          <Text style={styles.emptySubtitle}>Stwórz swoją pierwszą stylizację!</Text>
           <TouchableOpacity
             style={styles.createButton}
             onPress={() => router.push("/outfits/selectImages")}
@@ -182,6 +154,8 @@ export default function OutfitsScreen() {
         <FlatList
           data={outfits}
           keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -190,13 +164,13 @@ export default function OutfitsScreen() {
               onLongPress={() => handleLongPress(item)}
               delayLongPress={500}
             >
-              <MoodboardLayout images={item.images} imageHeight={120} />
+              <MoodboardLayout images={item.images} />
             </TouchableOpacity>
           )}
         />
       )}
 
-      {/* Modal pełnego ekranu */}
+      {/* Pełnoekranowy podgląd */}
       <Modal
         visible={selectedOutfit !== null}
         animationType="slide"
@@ -205,15 +179,15 @@ export default function OutfitsScreen() {
         {selectedOutfit && (
           <View style={styles.fullscreenContainer}>
             <View style={styles.fullscreenHeader}>
-              <TouchableOpacity
-                style={styles.closeButton}
-                onPress={() => setSelectedOutfit(null)}
-              >
-                <Ionicons name="close" size={26} color="#202C39" />
+              <TouchableOpacity onPress={() => setSelectedOutfit(null)}>
+                <SvgXml xml={backIcon} width={s(24)} height={s(24)} />
               </TouchableOpacity>
+              <Text style={styles.headerTitle}>Stylizacje</Text>
             </View>
-            <View style={styles.fullscreenMoodboard}>
-              <MoodboardLayout images={selectedOutfit.images} imageHeight={200} />
+            <View style={styles.fullscreenContent}>
+              <View style={styles.fullscreenCard}>
+                <MoodboardLayout images={selectedOutfit.images} />
+              </View>
             </View>
           </View>
         )}
@@ -257,9 +231,7 @@ export default function OutfitsScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              Czy na pewno chcesz usunąć tę stylizację?
-            </Text>
+            <Text style={styles.modalTitle}>Czy na pewno chcesz usunąć tę stylizację?</Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={styles.modalButtonSafe}
@@ -277,6 +249,8 @@ export default function OutfitsScreen() {
           </View>
         </View>
       </Modal>
+
+      <TabBar />
     </View>
   );
 }
@@ -285,115 +259,96 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFAF6",
-    paddingTop: 56,
+    paddingTop: s(60),
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    gap: 8,
+    paddingHorizontal: s(20),
+    paddingBottom: s(32),
+    gap: s(8),
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: fs(24),
     fontWeight: "700",
     color: "#202C39",
     fontFamily: "Inter",
+    lineHeight: fs(32),
   },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 20,
+    gap: s(12),
+    paddingHorizontal: s(20),
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: fs(20),
     fontWeight: "700",
     color: "#202C39",
     fontFamily: "Inter",
   },
   emptySubtitle: {
-    fontSize: 15,
+    fontSize: fs(15),
     color: "#A37D5D",
     textAlign: "center",
     fontFamily: "Inter",
   },
   createButton: {
-    marginTop: 8,
+    marginTop: s(8),
     backgroundColor: "#A37D5D",
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 30,
+    paddingVertical: s(14),
+    paddingHorizontal: s(32),
+    borderRadius: s(30),
   },
   createButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "600",
     fontFamily: "Inter",
   },
   listContent: {
-    padding: 16,
-    gap: 16,
-    paddingBottom: 40,
+    paddingHorizontal: s(20),
+    paddingBottom: s(120),
+    gap: s(19),
+  },
+  row: {
+    gap: s(19),
   },
   outfitCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
+    width: s(167),
+    height: s(230),
+    borderRadius: s(30),
+    borderWidth: 2,
+    borderColor: "#EDE1D7",
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#E8DDD4",
-  },
-  previewSingle: {
-    flexDirection: "column",
-    backgroundColor: "#ffffff",
-  },
-  previewImageFull: {
-    width: "100%",
-    backgroundColor: "#ffffff",
-  },
-  previewLayout: {
-    flexDirection: "row",
-    backgroundColor: "#ffffff",
-  },
-  previewLeft: {
-    flex: 1.3,
-    flexDirection: "column",
-  },
-  previewImageLeft: {
-    width: "100%",
-    backgroundColor: "#ffffff",
-  },
-  previewRight: {
-    flex: 0.7,
-    flexDirection: "column",
-  },
-  previewImageRight: {
-    width: "100%",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFAF6",
   },
   fullscreenContainer: {
     flex: 1,
     backgroundColor: "#FFFAF6",
+    paddingTop: s(60),
   },
   fullscreenHeader: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
-    paddingHorizontal: 16,
-    paddingTop: 56,
-    paddingBottom: 16,
+    paddingHorizontal: s(20),
+    paddingBottom: s(32),
+    gap: s(8),
   },
-  closeButton: {
-    padding: 4,
-  },
-  fullscreenMoodboard: {
+  fullscreenContent: {
     flex: 1,
-    padding: 16,
-    backgroundColor: "#ffffff",
-    margin: 16,
-    borderRadius: 20,
+    paddingHorizontal: s(20),
+    alignItems: "center",
+  },
+  fullscreenCard: {
+    width: s(331),
+    height: s(558),
+    borderRadius: s(30),
+    borderWidth: 2,
+    borderColor: "#EDE1D7",
     overflow: "hidden",
+    backgroundColor: "#FFFAF6",
   },
   modalOverlay: {
     flex: 1,
@@ -403,42 +358,42 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     backgroundColor: "#EDE1D7",
-    borderRadius: 30,
-    padding: 24,
-    width: 353,
+    borderRadius: s(30),
+    padding: s(24),
+    width: s(353),
     alignItems: "center",
-    gap: 12,
+    gap: s(12),
   },
   modalTitle: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     color: "#202C39",
     fontFamily: "Inter",
     textAlign: "center",
-    lineHeight: 24,
+    lineHeight: fs(24),
   },
   modalButtons: {
     flexDirection: "row",
-    gap: 12,
+    gap: s(12),
   },
   modalButtonSafe: {
-    width: 152,
-    height: 50,
-    borderRadius: 30,
+    width: s(152),
+    height: s(50),
+    borderRadius: s(30),
     backgroundColor: "#A37D5D",
     justifyContent: "center",
     alignItems: "center",
   },
   modalButtonSafeText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: "Inter",
     fontWeight: "400",
   },
   modalButtonDanger: {
-    width: 152,
-    height: 50,
-    borderRadius: 30,
+    width: s(152),
+    height: s(50),
+    borderRadius: s(30),
     borderWidth: 2,
     borderColor: "#E05744",
     justifyContent: "center",
@@ -446,30 +401,30 @@ const styles = StyleSheet.create({
   },
   modalButtonDangerText: {
     color: "#E05744",
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: "Inter",
     fontWeight: "400",
   },
   modalButtonDangerFull: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
+    width: s(305),
+    height: s(48),
+    borderRadius: s(30),
     borderWidth: 2,
     borderColor: "#E05744",
     justifyContent: "center",
     alignItems: "center",
   },
   modalButtonSafeFull: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
+    width: s(305),
+    height: s(48),
+    borderRadius: s(30),
     backgroundColor: "#A37D5D",
     justifyContent: "center",
     alignItems: "center",
   },
   modalButtonSafeFullText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: "Inter",
     fontWeight: "400",
   },

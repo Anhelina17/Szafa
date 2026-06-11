@@ -11,15 +11,12 @@ export default function ProfileScreen() {
   useEffect(() => {
     const loadUser = async () => {
       const { data } = await supabase.auth.getUser();
-
       if (!data.user) {
         router.replace("/login");
         return;
       }
-
       setUser(data.user);
     };
-
     loadUser();
   }, []);
 
@@ -37,18 +34,15 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>{/**/}
-  
+    <View style={styles.container}>
       <View style={styles.infoBox}>
         <Text style={styles.label}>Imię:</Text>
         <Text style={styles.value}>{user.user_metadata?.name}</Text>
       </View>
-
       <View style={styles.infoBox}>
         <Text style={styles.label}>Email:</Text>
         <Text style={styles.value}>{user.email}</Text>
       </View>
-
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutText}>Wyloguj</Text>
       </TouchableOpacity>

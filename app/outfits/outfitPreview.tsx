@@ -12,9 +12,10 @@ import {
 } from "react-native";
 import { SvgXml } from "react-native-svg";
 import { supabase } from "../../supabaseClient";
+import { fs, s } from "../../utils/scale";
 
 const backIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <path d="M16.0603 2.45407C16.3415 2.73536 16.4995 3.11683 16.4995 3.51457C16.4995 3.91232 16.3415 4.29378 16.0603 4.57507L8.63533 12.0001L16.0603 19.4251C16.3336 19.708 16.4848 20.0869 16.4813 20.4802C16.4779 20.8735 16.3202 21.2497 16.0421 21.5278C15.7639 21.8059 15.3877 21.9637 14.9944 21.9671C14.6011 21.9705 14.2222 21.8193 13.9393 21.5461L5.45383 13.0606C5.17262 12.7793 5.01465 12.3978 5.01465 12.0001C5.01465 11.6023 5.17262 11.2209 5.45383 10.9396L13.9393 2.45407C14.2206 2.17287 14.6021 2.01489 14.9998 2.01489C15.3976 2.01489 15.779 2.17287 16.0603 2.45407Z" fill="#202C39"/>
+  <path d="M16.0604 2.45407C16.3417 2.73536 16.4996 3.11683 16.4996 3.51457C16.4996 3.91232 16.3417 4.29378 16.0604 4.57507L8.63545 12.0001L16.0604 19.4251C16.3337 19.708 16.4849 20.0869 16.4815 20.4802C16.478 20.8735 16.3203 21.2497 16.0422 21.5278C15.7641 21.8059 15.3878 21.9637 14.9946 21.9671C14.6013 21.9705 14.2224 21.8193 13.9395 21.5461L5.45395 13.0606C5.17274 12.7793 5.01477 12.3978 5.01477 12.0001C5.01477 11.6023 5.17274 11.2209 5.45395 10.9396L13.9395 2.45407C14.2207 2.17287 14.6022 2.01489 15 2.01489C15.3977 2.01489 15.7792 2.17287 16.0604 2.45407Z" fill="#202C39"/>
 </svg>`;
 
 type ImageItem = {
@@ -31,7 +32,6 @@ type MoodboardItem = {
 export default function OutfitPreviewScreen() {
   const router = useRouter();
   const { selectedImages } = useLocalSearchParams<{ selectedImages: string }>();
-
   const images: ImageItem[] = selectedImages ? JSON.parse(selectedImages) : [];
 
   const [moodboard, setMoodboard] = useState<MoodboardItem[]>([]);
@@ -79,9 +79,7 @@ export default function OutfitPreviewScreen() {
 
       const imageParts = imageData.map(({ base64 }) => ({
         type: "image_url",
-        image_url: {
-          url: `data:image/jpeg;base64,${base64}`,
-        },
+        image_url: { url: `data:image/jpeg;base64,${base64}` },
       }));
 
       const prompt = `Jesteś stylistą mody. Przeanalizuj te ${images.length} zdjęcia i ułóż je w stylizację jako moodboard.
@@ -109,57 +107,31 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
         },
         body: JSON.stringify({
           model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "user",
-              content: [
-                { type: "text", text: prompt },
-                ...imageParts,
-              ],
-            },
-          ],
+          messages: [{ role: "user", content: [{ type: "text", text: prompt }, ...imageParts] }],
           max_tokens: 500,
           temperature: 0.1,
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("OpenAI error details:", JSON.stringify(errorData));
-        throw new Error("Błąd odpowiedzi OpenAI API");
-      }
+      if (!response.ok) throw new Error("Błąd odpowiedzi OpenAI API");
 
       const data = await response.json();
       const text = data.choices?.[0]?.message?.content ?? "";
-
       const clean = text.replace(/```json|```/g, "").trim();
-      const parsed: {
-        items: { id: string; position: string }[];
-        noClothing: boolean;
-      } = JSON.parse(clean);
+      const parsed: { items: { id: string; position: string }[]; noClothing: boolean } = JSON.parse(clean);
 
-      if (parsed.noClothing) {
-        setNoClothingDetected(true);
-      }
+      if (parsed.noClothing) setNoClothingDetected(true);
 
-      const result: MoodboardItem[] = parsed.items.map((item) => {
-        const index = parseInt(item.id);
-        const image = images[index];
-        return {
-          image,
-          position: item.position as MoodboardItem["position"],
-        };
-      });
+      const result: MoodboardItem[] = parsed.items.map((item) => ({
+        image: images[parseInt(item.id)],
+        position: item.position as MoodboardItem["position"],
+      }));
 
       setMoodboard(result);
     } catch (e) {
       console.error("Błąd generowania moodboardu:", e);
       setIsAutoLayout(true);
-      const fallback: MoodboardItem[] = images.map((img) => ({
-        image: img,
-        position: "top" as const,
-      }));
-      setMoodboard(fallback);
+      setMoodboard(images.map((img) => ({ image: img, position: "top" as const })));
     } finally {
       setIsLoadingAI(false);
     }
@@ -168,7 +140,6 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
   const handleSave = async () => {
     try {
       setIsSaving(true);
-
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Brak użytkownika");
 
@@ -186,10 +157,7 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
         position: item.position,
       }));
 
-      const { error: itemsError } = await supabase
-        .from("outfit_items")
-        .insert(items);
-
+      const { error: itemsError } = await supabase.from("outfit_items").insert(items);
       if (itemsError) throw itemsError;
 
       setSavedModalVisible(true);
@@ -211,9 +179,9 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <SvgXml xml={backIcon} width={24} height={24} />
+          <SvgXml xml={backIcon} width={s(24)} height={s(24)} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Twoja stylizacja</Text>
+        <Text style={styles.headerTitle}>Tworzenie stylizacji</Text>
       </View>
 
       {isLoadingAI ? (
@@ -236,7 +204,8 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
             </View>
           )}
 
-          <View style={styles.moodboard}>
+          {/* Duży prostokąt ze stylizacją */}
+          <View style={styles.moodboardCard}>
             {isAutoLayout ? (
               <View style={styles.autoGrid}>
                 {moodboard.map((item) => (
@@ -260,7 +229,6 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
                     />
                   ))}
                 </View>
-
                 {hasSideItems && (
                   <View style={styles.rightColumn}>
                     <View style={styles.rightSlot}>
@@ -277,7 +245,6 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
                         <View style={styles.emptySlot} />
                       )}
                     </View>
-
                     <View style={styles.rightSlot}>
                       {bottomItems.length > 0 ? (
                         bottomItems.map((item) => (
@@ -298,6 +265,7 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
             )}
           </View>
 
+          {/* Kнопка zapisz — 8px od karty */}
           <TouchableOpacity
             style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
             onPress={handleSave}
@@ -312,7 +280,6 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
         </ScrollView>
       )}
 
-      {/* Modal po zapisaniu */}
       <Modal
         visible={savedModalVisible}
         transparent
@@ -326,10 +293,7 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
               style={styles.modalButtonSafeFull}
               onPress={() => {
                 setSavedModalVisible(false);
-                router.push({
-                  pathname: "/outfits/outfits",
-                  params: { fromCreation: "true" },
-                });
+                router.push({ pathname: "/outfits/outfits", params: { fromCreation: "true" } });
               }}
             >
               <Text style={styles.modalButtonSafeFullText}>Zobacz stylizacje</Text>
@@ -354,67 +318,74 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFAF6",
-    paddingTop: 56,
+    paddingTop: s(60),
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    gap: 8,
+    paddingHorizontal: s(20),
+    paddingBottom: s(32),
+    gap: s(8),
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: fs(24),
     fontWeight: "700",
     color: "#202C39",
     fontFamily: "Inter",
+    lineHeight: fs(32),
   },
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    gap: 16,
+    gap: s(16),
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: fs(16),
     color: "#A37D5D",
     textAlign: "center",
     fontFamily: "Inter",
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    paddingHorizontal: s(20),
+    paddingBottom: s(40),
+    alignItems: "center",
   },
   autoBanner: {
     backgroundColor: "#FFF3E0",
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 16,
+    borderRadius: s(10),
+    padding: s(12),
+    marginBottom: s(16),
     alignItems: "center",
-    gap: 6,
+    gap: s(6),
     borderWidth: 1,
     borderColor: "#A37D5D",
+    width: s(331),
   },
   autoText: {
     color: "#A37D5D",
-    fontSize: 14,
+    fontSize: fs(14),
     textAlign: "center",
     fontFamily: "Inter",
   },
   retryText: {
     color: "#A37D5D",
     fontWeight: "700",
-    fontSize: 14,
+    fontSize: fs(14),
     textDecorationLine: "underline",
     fontFamily: "Inter",
   },
-  moodboard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 20,
+  moodboardCard: {
+    width: s(331),
+    height: s(558),
+    borderRadius: s(30),
+    borderWidth: 2,
+    borderColor: "#EDE1D7",
     overflow: "hidden",
-    marginBottom: 24,
+    backgroundColor: "#FFFAF6",
   },
   layout: {
+    flex: 1,
     flexDirection: "row",
   },
   leftColumn: {
@@ -424,7 +395,7 @@ const styles = StyleSheet.create({
   leftColumnImage: {
     width: "100%",
     height: 200,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFAF6",
   },
   rightColumn: {
     flex: 0.7,
@@ -437,11 +408,11 @@ const styles = StyleSheet.create({
   rightColumnImage: {
     width: "100%",
     height: "100%",
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFAF6",
   },
   emptySlot: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFAF6",
   },
   autoGrid: {
     flexDirection: "row",
@@ -450,23 +421,26 @@ const styles = StyleSheet.create({
   autoGridImage: {
     width: "50%",
     height: 180,
-    backgroundColor: "#ffffff",
+    backgroundColor: "#FFFAF6",
   },
   saveButton: {
+    width: s(331),
+    height: s(48),
     backgroundColor: "#A37D5D",
-    paddingVertical: 16,
-    borderRadius: 30,
+    borderRadius: s(30),
+    justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: 16,
+    marginTop: s(8),
   },
   saveButtonDisabled: {
     opacity: 0.6,
   },
   saveButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
+    color: "#FFFAF6",
+    fontSize: fs(16),
+    fontWeight: "400",
     fontFamily: "Inter",
+    lineHeight: fs(24),
   },
   modalOverlay: {
     flex: 1,
@@ -476,38 +450,38 @@ const styles = StyleSheet.create({
   },
   modalBox: {
     backgroundColor: "#EDE1D7",
-    borderRadius: 30,
-    padding: 24,
-    width: 353,
+    borderRadius: s(30),
+    padding: s(24),
+    width: s(353),
     alignItems: "center",
-    gap: 12,
+    gap: s(12),
   },
   modalTitle: {
-    fontSize: 16,
+    fontSize: fs(16),
     fontWeight: "700",
     color: "#202C39",
     fontFamily: "Inter",
     textAlign: "center",
-    lineHeight: 24,
+    lineHeight: fs(24),
   },
   modalButtonSafeFull: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
+    width: s(305),
+    height: s(48),
+    borderRadius: s(30),
     backgroundColor: "#A37D5D",
     justifyContent: "center",
     alignItems: "center",
   },
   modalButtonSafeFullText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: "Inter",
     fontWeight: "400",
   },
   modalButtonDangerFull: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
+    width: s(305),
+    height: s(48),
+    borderRadius: s(30),
     borderWidth: 2,
     borderColor: "#E05744",
     justifyContent: "center",
@@ -515,7 +489,7 @@ const styles = StyleSheet.create({
   },
   modalButtonDangerText: {
     color: "#E05744",
-    fontSize: 16,
+    fontSize: fs(16),
     fontFamily: "Inter",
     fontWeight: "400",
   },
