@@ -26,7 +26,7 @@ export default function RootLayout() {
       <Stack.Screen name="photoPreview" options={{ headerShown: false }} />
       <Stack.Screen name="selectFolder" options={{ headerShown: false }} />
       <Stack.Screen name="galleryPicker" options={{ title: "Galeria" }} />
-      <Stack.Screen name="profile" options={{ title: "Profil" }} />
+      <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen name="wardrobe/wardrobe" options={{ headerShown: false }} />
       <Stack.Screen name="wardrobe/folderView" options={{ headerShown: false }} />
       <Stack.Screen name="wardrobe/favorites/favorites" options={{ headerShown: false }} />
