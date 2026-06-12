@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
@@ -24,6 +25,7 @@ export default function OutfitsScreen() {
   const { fromCreation } = useLocalSearchParams<{ fromCreation?: string }>();
   const [outfits, setOutfits] = useState<Outfit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null);
   const [deleteOptionsVisible, setDeleteOptionsVisible] = useState(false);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
@@ -40,8 +42,9 @@ export default function OutfitsScreen() {
       setIsLoading(true);
       const data = await getOutfits();
       setOutfits(data);
+      setIsOffline(false);
     } catch (e) {
-      console.error("Błąd ładowania stylizacji:", e);
+      setIsOffline(true);
     } finally {
       setIsLoading(false);
     }
@@ -56,6 +59,7 @@ export default function OutfitsScreen() {
   };
 
   const handleLongPress = (outfit: Outfit) => {
+    if (isOffline) return;
     setOutfitToDelete(outfit);
     setDeleteOptionsVisible(true);
   };
@@ -83,12 +87,7 @@ export default function OutfitsScreen() {
       return (
         <View style={{ flex: 1, backgroundColor: "#FFFAF6" }}>
           {mainItems.map((img) => (
-            <Image
-              key={img.id}
-              source={{ uri: img.image_url }}
-              style={{ width: "100%", flex: 1, backgroundColor: "#FFFAF6" }}
-              resizeMode="contain"
-            />
+            <Image key={img.id} source={{ uri: img.image_url }} style={{ width: "100%", flex: 1, backgroundColor: "#FFFAF6" }} resizeMode="contain" />
           ))}
         </View>
       );
@@ -98,12 +97,7 @@ export default function OutfitsScreen() {
       <View style={{ flex: 1, flexDirection: "row", backgroundColor: "#FFFAF6" }}>
         <View style={{ flex: 1.3 }}>
           {mainItems.map((img) => (
-            <Image
-              key={img.id}
-              source={{ uri: img.image_url }}
-              style={{ width: "100%", flex: 1, backgroundColor: "#FFFAF6" }}
-              resizeMode="contain"
-            />
+            <Image key={img.id} source={{ uri: img.image_url }} style={{ width: "100%", flex: 1, backgroundColor: "#FFFAF6" }} resizeMode="contain" />
           ))}
         </View>
         <View style={{ flex: 0.7 }}>
@@ -141,14 +135,21 @@ export default function OutfitsScreen() {
 
       {outfits.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyTitle}>Brak stylizacji</Text>
-          <Text style={styles.emptySubtitle}>Stwórz swoją pierwszą stylizację!</Text>
-          <TouchableOpacity
-            style={styles.createButton}
-            onPress={() => router.push("/outfits/selectImages")}
-          >
-            <Text style={styles.createButtonText}>Stwórz stylizację</Text>
-          </TouchableOpacity>
+          {isOffline ? (
+            <>
+              <Ionicons name="wifi-outline" size={64} color="#D8CFC4" />
+              <Text style={styles.emptyTitle}>Brak połączenia</Text>
+              <Text style={styles.emptySubtitle}>Połącz się z internetem aby zobaczyć stylizacje.</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.emptyTitle}>Brak stylizacji</Text>
+              <Text style={styles.emptySubtitle}>Stwórz swoją pierwszą stylizację!</Text>
+              <TouchableOpacity style={styles.createButton} onPress={() => router.push("/outfits/selectImages")}>
+                <Text style={styles.createButtonText}>Stwórz stylizację</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       ) : (
         <FlatList
@@ -170,12 +171,7 @@ export default function OutfitsScreen() {
         />
       )}
 
-      {/* Pełnoekranowy podgląd */}
-      <Modal
-        visible={selectedOutfit !== null}
-        animationType="slide"
-        onRequestClose={() => setSelectedOutfit(null)}
-      >
+      <Modal visible={selectedOutfit !== null} animationType="slide" onRequestClose={() => setSelectedOutfit(null)}>
         {selectedOutfit && (
           <View style={styles.fullscreenContainer}>
             <View style={styles.fullscreenHeader}>
@@ -193,56 +189,29 @@ export default function OutfitsScreen() {
         )}
       </Modal>
 
-      {/* Modal opcji long press */}
-      <Modal
-        visible={deleteOptionsVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeleteOptionsVisible(false)}
-      >
+      <Modal visible={deleteOptionsVisible} transparent animationType="fade" onRequestClose={() => setDeleteOptionsVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Co chcesz zrobić z tą stylizacją?</Text>
-            <TouchableOpacity
-              style={styles.modalButtonDangerFull}
-              onPress={() => {
-                setDeleteOptionsVisible(false);
-                setDeleteConfirmVisible(true);
-              }}
-            >
+            <TouchableOpacity style={styles.modalButtonDangerFull} onPress={() => { setDeleteOptionsVisible(false); setDeleteConfirmVisible(true); }}>
               <Text style={styles.modalButtonDangerText}>Usuń stylizację</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButtonSafeFull}
-              onPress={() => setDeleteOptionsVisible(false)}
-            >
+            <TouchableOpacity style={styles.modalButtonSafeFull} onPress={() => setDeleteOptionsVisible(false)}>
               <Text style={styles.modalButtonSafeFullText}>Anuluj</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* Modal potwierdzenia usunięcia */}
-      <Modal
-        visible={deleteConfirmVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeleteConfirmVisible(false)}
-      >
+      <Modal visible={deleteConfirmVisible} transparent animationType="fade" onRequestClose={() => setDeleteConfirmVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Czy na pewno chcesz usunąć tę stylizację?</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalButtonSafe}
-                onPress={() => setDeleteConfirmVisible(false)}
-              >
+              <TouchableOpacity style={styles.modalButtonSafe} onPress={() => setDeleteConfirmVisible(false)}>
                 <Text style={styles.modalButtonSafeText}>Zostaw</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalButtonDanger}
-                onPress={handleDeleteConfirm}
-              >
+              <TouchableOpacity style={styles.modalButtonDanger} onPress={handleDeleteConfirm}>
                 <Text style={styles.modalButtonDangerText}>Usuń</Text>
               </TouchableOpacity>
             </View>
@@ -256,176 +225,30 @@ export default function OutfitsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFAF6",
-    paddingTop: s(60),
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: s(20),
-    paddingBottom: s(32),
-    gap: s(8),
-  },
-  headerTitle: {
-    fontSize: fs(24),
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    lineHeight: fs(32),
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: s(12),
-    paddingHorizontal: s(20),
-  },
-  emptyTitle: {
-    fontSize: fs(20),
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-  },
-  emptySubtitle: {
-    fontSize: fs(15),
-    color: "#A37D5D",
-    textAlign: "center",
-    fontFamily: "Inter",
-  },
-  createButton: {
-    marginTop: s(8),
-    backgroundColor: "#A37D5D",
-    paddingVertical: s(14),
-    paddingHorizontal: s(32),
-    borderRadius: s(30),
-  },
-  createButtonText: {
-    color: "#fff",
-    fontSize: fs(16),
-    fontWeight: "600",
-    fontFamily: "Inter",
-  },
-  listContent: {
-    paddingHorizontal: s(20),
-    paddingBottom: s(120),
-    gap: s(19),
-  },
-  row: {
-    gap: s(19),
-  },
-  outfitCard: {
-    width: s(167),
-    height: s(230),
-    borderRadius: s(30),
-    borderWidth: 2,
-    borderColor: "#EDE1D7",
-    overflow: "hidden",
-    backgroundColor: "#FFFAF6",
-  },
-  fullscreenContainer: {
-    flex: 1,
-    backgroundColor: "#FFFAF6",
-    paddingTop: s(60),
-  },
-  fullscreenHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: s(20),
-    paddingBottom: s(32),
-    gap: s(8),
-  },
-  fullscreenContent: {
-    flex: 1,
-    paddingHorizontal: s(20),
-    alignItems: "center",
-  },
-  fullscreenCard: {
-    width: s(331),
-    height: s(558),
-    borderRadius: s(30),
-    borderWidth: 2,
-    borderColor: "#EDE1D7",
-    overflow: "hidden",
-    backgroundColor: "#FFFAF6",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBox: {
-    backgroundColor: "#EDE1D7",
-    borderRadius: s(30),
-    padding: s(24),
-    width: s(353),
-    alignItems: "center",
-    gap: s(12),
-  },
-  modalTitle: {
-    fontSize: fs(16),
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    textAlign: "center",
-    lineHeight: fs(24),
-  },
-  modalButtons: {
-    flexDirection: "row",
-    gap: s(12),
-  },
-  modalButtonSafe: {
-    width: s(152),
-    height: s(50),
-    borderRadius: s(30),
-    backgroundColor: "#A37D5D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonSafeText: {
-    color: "#FFFFFF",
-    fontSize: fs(16),
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  modalButtonDanger: {
-    width: s(152),
-    height: s(50),
-    borderRadius: s(30),
-    borderWidth: 2,
-    borderColor: "#E05744",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonDangerText: {
-    color: "#E05744",
-    fontSize: fs(16),
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  modalButtonDangerFull: {
-    width: s(305),
-    height: s(48),
-    borderRadius: s(30),
-    borderWidth: 2,
-    borderColor: "#E05744",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonSafeFull: {
-    width: s(305),
-    height: s(48),
-    borderRadius: s(30),
-    backgroundColor: "#A37D5D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonSafeFullText: {
-    color: "#FFFFFF",
-    fontSize: fs(16),
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
+  container: { flex: 1, backgroundColor: "#FFFAF6", paddingTop: s(60) },
+  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: s(20), paddingBottom: s(32), gap: s(8) },
+  headerTitle: { fontSize: fs(24), fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: fs(32) },
+  center: { flex: 1, justifyContent: "center", alignItems: "center", gap: s(12), paddingHorizontal: s(20) },
+  emptyTitle: { fontSize: fs(20), fontWeight: "700", color: "#202C39", fontFamily: "Inter" },
+  emptySubtitle: { fontSize: fs(15), color: "#A37D5D", textAlign: "center", fontFamily: "Inter" },
+  createButton: { marginTop: s(8), backgroundColor: "#A37D5D", paddingVertical: s(14), paddingHorizontal: s(32), borderRadius: s(30) },
+  createButtonText: { color: "#fff", fontSize: fs(16), fontWeight: "600", fontFamily: "Inter" },
+  listContent: { paddingHorizontal: s(20), paddingBottom: s(120), gap: s(19) },
+  row: { gap: s(19) },
+  outfitCard: { width: s(167), height: s(230), borderRadius: s(30), borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", backgroundColor: "#FFFAF6" },
+  fullscreenContainer: { flex: 1, backgroundColor: "#FFFAF6", paddingTop: s(60) },
+  fullscreenHeader: { flexDirection: "row", alignItems: "center", paddingHorizontal: s(20), paddingBottom: s(32), gap: s(8) },
+  fullscreenContent: { flex: 1, paddingHorizontal: s(20), alignItems: "center" },
+  fullscreenCard: { width: s(331), height: s(558), borderRadius: s(30), borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", backgroundColor: "#FFFAF6" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalBox: { backgroundColor: "#EDE1D7", borderRadius: s(30), padding: s(24), width: s(353), alignItems: "center", gap: s(12) },
+  modalTitle: { fontSize: fs(16), fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: fs(24) },
+  modalButtons: { flexDirection: "row", gap: s(12) },
+  modalButtonSafe: { width: s(152), height: s(50), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDanger: { width: s(152), height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonDangerText: { color: "#E05744", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDangerFull: { width: s(305), height: s(48), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeFull: { width: s(305), height: s(48), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeFullText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
 });

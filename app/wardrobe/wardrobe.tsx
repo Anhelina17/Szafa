@@ -15,6 +15,8 @@ import {
 } from "react-native";
 import { SvgXml } from "react-native-svg";
 import TabBar from "../../components/TabBar";
+import { useAuth } from "../../context/AuthContext";
+import { FOLDERS_CACHE_KEY, loadFromCache, saveToCache } from "../../services/cache";
 import { createFolder, deleteFolder, getFolders, renameFolder } from "../../services/folders";
 
 const plusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
@@ -33,8 +35,10 @@ const closeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
 
 export default function WardrobeScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [folders, setFolders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOffline, setIsOffline] = useState(false);
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [folderOptionsModalVisible, setFolderOptionsModalVisible] = useState(false);
@@ -49,8 +53,18 @@ export default function WardrobeScreen() {
     try {
       const data = await getFolders();
       setFolders(data ?? []);
+      setIsOffline(false);
+      if (user?.id) {
+        await saveToCache(FOLDERS_CACHE_KEY(user.id), data ?? []);
+      }
     } catch (e) {
-      console.error(e);
+      if (user?.id) {
+        const cached = await loadFromCache<any[]>(FOLDERS_CACHE_KEY(user.id));
+        if (cached) {
+          setFolders(cached);
+          setIsOffline(true);
+        }
+      }
     } finally {
       setIsLoading(false);
     }
@@ -103,7 +117,6 @@ export default function WardrobeScreen() {
     }
   };
 
-  // Czy nazwa zmieniona
   const renameChanged = newFolderName.trim() !== "" && newFolderName.trim() !== selectedFolder?.name;
 
   if (isLoading) {
@@ -118,10 +131,18 @@ export default function WardrobeScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Ubrania</Text>
 
-      <TouchableOpacity style={styles.createButton} onPress={() => setCreateModalVisible(true)}>
-        <SvgXml xml={plusIcon} width={30} height={30} />
-        <Text style={styles.createButtonText}>Stwórz folder</Text>
-      </TouchableOpacity>
+      {isOffline && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineText}>Brak połączenia — dane z ostatniej sesji</Text>
+        </View>
+      )}
+
+      {!isOffline && (
+        <TouchableOpacity style={styles.createButton} onPress={() => setCreateModalVisible(true)}>
+          <SvgXml xml={plusIcon} width={30} height={30} />
+          <Text style={styles.createButtonText}>Stwórz folder</Text>
+        </TouchableOpacity>
+      )}
 
       <FlatList
         data={[{ id: 'ulubione', name: 'Ulubione', isSpecial: true }, ...folders]}
@@ -142,7 +163,7 @@ export default function WardrobeScreen() {
             <TouchableOpacity
               style={styles.folder}
               onPress={() => router.push({ pathname: "/wardrobe/folderView", params: { folderId: item.id, folderName: item.name } })}
-              onLongPress={() => handleLongPress(item)}
+              onLongPress={() => !isOffline && handleLongPress(item)}
               delayLongPress={500}
             >
               <Text style={styles.folderText}>{item.name}</Text>
@@ -151,7 +172,6 @@ export default function WardrobeScreen() {
         }}
       />
 
-      {/* Modal opcji folderu */}
       <Modal visible={folderOptionsModalVisible} transparent animationType="fade" onRequestClose={() => setFolderOptionsModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
@@ -176,7 +196,6 @@ export default function WardrobeScreen() {
         </View>
       </Modal>
 
-      {/* Modal potwierdzenia usunięcia */}
       <Modal visible={deleteConfirmModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteConfirmModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.deleteModalBox}>
@@ -193,7 +212,6 @@ export default function WardrobeScreen() {
         </View>
       </Modal>
 
-      {/* Modal tworzenia folderu */}
       <Modal visible={createModalVisible} transparent animationType="fade" onRequestClose={() => setCreateModalVisible(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <View style={styles.modalOverlay}>
@@ -224,7 +242,6 @@ export default function WardrobeScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Modal zmiany nazwy */}
       <Modal visible={renameModalVisible} transparent animationType="fade" onRequestClose={() => setRenameModalVisible(false)}>
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <View style={styles.modalOverlay}>
@@ -243,7 +260,6 @@ export default function WardrobeScreen() {
                 placeholderTextColor="#9D9D9D"
                 autoFocus
               />
-              {/* Aktywna tylko gdy nazwa zmieniona */}
               <TouchableOpacity
                 style={[styles.modalButton, renameChanged ? styles.modalButtonActive : styles.modalButtonInactive]}
                 onPress={handleRenameConfirm}
@@ -265,6 +281,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFAF6", paddingTop: 56, paddingHorizontal: 20 },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   title: { fontSize: 18, fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: 26, textAlign: "center", marginBottom: 16 },
+  offlineBanner: { backgroundColor: "#FFF3E0", borderRadius: 10, padding: 10, marginBottom: 12, alignItems: "center", borderWidth: 1, borderColor: "#A37D5D" },
+  offlineText: { color: "#A37D5D", fontSize: 13, fontFamily: "Inter", fontWeight: "500" },
   createButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 2, borderColor: "#A37D5D", borderStyle: "dashed", borderRadius: 30, height: 50, marginBottom: 16 },
   createButtonText: { color: "#A37D5D", fontSize: 16, fontWeight: "700", fontFamily: "Inter" },
   row: { justifyContent: "space-between", marginBottom: 19 },

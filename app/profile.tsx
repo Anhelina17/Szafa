@@ -1,5 +1,3 @@
-import type { User } from "@supabase/supabase-js";
-import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -12,6 +10,7 @@ import {
 } from "react-native";
 import { SvgXml } from "react-native-svg";
 import TabBar from "../components/TabBar";
+import { useAuth } from "../context/AuthContext";
 import { getFolders } from "../services/folders";
 import { getImagesByFolder } from "../services/images";
 import { supabase } from "../supabaseClient";
@@ -22,8 +21,7 @@ const pencilIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="1
 </svg>`;
 
 export default function ProfileScreen() {
-  const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [displayName, setDisplayName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
@@ -32,39 +30,35 @@ export default function ProfileScreen() {
   const [outfitCount, setOutfitCount] = useState(0);
 
   useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!data.user) {
-        router.replace("/login");
-        return;
+    if (!user) return;
+    setDisplayName(user.user_metadata?.name ?? "");
+    loadStats();
+  }, [user]);
+
+  const loadStats = async () => {
+    if (!user) return;
+    try {
+      const folders = await getFolders();
+      setFolderCount(folders?.length ?? 0);
+
+      let total = 0;
+      for (const folder of folders ?? []) {
+        const imgs = await getImagesByFolder(folder.id);
+        total += imgs?.length ?? 0;
       }
-      setUser(data.user);
-      setDisplayName(data.user.user_metadata?.name ?? "");
+      setClothesCount(total);
 
-      try {
-        const folders = await getFolders();
-        setFolderCount(folders?.length ?? 0);
-
-        let total = 0;
-        for (const folder of folders ?? []) {
-          const imgs = await getImagesByFolder(folder.id);
-          total += imgs?.length ?? 0;
-        }
-        setClothesCount(total);
-
-        const { count } = await supabase
-          .from("outfits")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", data.user.id);
-        setOutfitCount(count ?? 0);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    load();
-  }, []);
+      const { count } = await supabase
+        .from("outfits")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      setOutfitCount(count ?? 0);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getInitials = () => {
     const name = displayName.trim();
@@ -86,11 +80,6 @@ export default function ProfileScreen() {
     } catch (e) {
       Alert.alert("Błąd", "Nie udało się zapisać imienia");
     }
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace("/login");
   };
 
   if (isLoading) {
@@ -161,7 +150,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+      <TouchableOpacity style={styles.logoutButton} onPress={signOut}>
         <Text style={styles.logoutText}>Wyloguj się</Text>
       </TouchableOpacity>
 
