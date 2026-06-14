@@ -61,12 +61,13 @@ export default function SelectFolderScreen() {
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<any>(null);
   const [newFolderName, setNewFolderName] = useState("");
+  const [toastMessage, setToastMessage] = useState("Zdjęcie dodane! ✓");
   const toastOpacity = useRef(new Animated.Value(0)).current;
 
   const showToast = () => {
     Animated.sequence([
       Animated.timing(toastOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.delay(1000),
+      Animated.delay(2000),
       Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
     ]).start();
   };
@@ -88,38 +89,65 @@ export default function SelectFolderScreen() {
     }
   };
 
-  const toggleFolder = async (targetFolderId: string) => {
+  const toggleFolder = (targetFolderId: string) => {
+    if (isMove) {
+      // В режиме перемещения — сразу выполняем
+      handleMoveToFolder(targetFolderId);
+      return;
+    }
+    // В режиме добавления — мульти-выбор
+    setSelected((prev) =>
+      prev.includes(targetFolderId)
+        ? prev.filter((id) => id !== targetFolderId)
+        : [...prev, targetFolderId]
+    );
+  };
+
+  const handleMoveToFolder = async (targetFolderId: string) => {
     setSelected([targetFolderId]);
     try {
       if (!safeImageId) return;
-      if (isMove) {
-        await supabase
-          .from("image_folders")
-          .delete()
-          .eq("image_id", safeImageId)
-          .eq("folder_id", safeSourceFolderId);
-        await supabase
-          .from("image_folders")
-          .insert({ image_id: safeImageId, folder_id: targetFolderId });
-        const targetName = folders.find((f: any) => f.id === targetFolderId)?.name ?? "";
-        router.replace({
-          pathname: "/wardrobe/folderView",
-          params: {
-            folderId: safeSourceFolderId,
-            folderName: sourceFolderName ?? "",
-            movedImageId: safeImageId,
-            movedToFolderId: targetFolderId,
-            movedToFolderName: targetName,
-          },
-        } as any);
-      } else {
-        await addImageToFolders(safeImageId, [targetFolderId]);
-        router.replace("/wardrobe/wardrobe");
-      }
+      await supabase
+        .from("image_folders")
+        .delete()
+        .eq("image_id", safeImageId)
+        .eq("folder_id", safeSourceFolderId);
+      await supabase
+        .from("image_folders")
+        .insert({ image_id: safeImageId, folder_id: targetFolderId });
+      const targetName = folders.find((f: any) => f.id === targetFolderId)?.name ?? "";
+      router.replace({
+        pathname: "/wardrobe/folderView",
+        params: {
+          folderId: safeSourceFolderId,
+          folderName: sourceFolderName ?? "",
+          movedImageId: safeImageId,
+          movedToFolderId: targetFolderId,
+          movedToFolderName: targetName,
+        },
+      } as any);
     } catch (e) {
       console.error(e);
       alert("Błąd zapisu");
       setSelected([]);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!safeImageId || selected.length === 0) return;
+    try {
+      await addImageToFolders(safeImageId, selected);
+      const names = selected
+        .map((id) => folders.find((f: any) => f.id === id)?.name)
+        .filter(Boolean)
+        .join(", ");
+      router.replace({
+        pathname: "/wardrobe/wardrobe",
+        params: { addedToFolders: names },
+      } as any);
+    } catch (e) {
+      console.error(e);
+      alert("Błąd zapisu");
     }
   };
 
@@ -190,7 +218,7 @@ export default function SelectFolderScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Przycisk stwórz folder — tylko w trybie dodawania */}
+        {}
         {!isMove && (
           <TouchableOpacity
             style={styles.createButton}
@@ -229,8 +257,21 @@ export default function SelectFolderScreen() {
         </View>
       </ScrollView>
 
+      {/* Przycisk Zapisz — tylko w trybie dodawania */}
+      {!isMove && (
+        <View style={styles.saveButtonContainer}>
+          <TouchableOpacity
+            style={[styles.saveButton, selected.length === 0 && styles.saveButtonDisabled]}
+            onPress={handleSave}
+            disabled={selected.length === 0}
+          >
+            <Text style={styles.saveButtonText}>Zapisz</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <Animated.View style={[styles.toast, { opacity: toastOpacity }]}>
-        <Text style={styles.toastText}>Zdjęcie dodane! ✓</Text>
+        <Text style={styles.toastText}>{toastMessage}</Text>
       </Animated.View>
 
       {/* Modal opcji folderu */}
@@ -352,6 +393,28 @@ const styles = StyleSheet.create({
   deleteModalButtonSafeText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
   deleteModalButtonDanger: { width: s(152), height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
   deleteModalButtonDangerText: { color: "#E05744", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
-  toast: { position: "absolute", bottom: s(40), alignSelf: "center", backgroundColor: "#202C39", paddingHorizontal: s(24), paddingVertical: s(12), borderRadius: s(30), zIndex: 100 },
+  saveButtonContainer: {
+    paddingHorizontal: s(20),
+    paddingBottom: s(40),
+    paddingTop: s(12),
+    backgroundColor: "#FFFAF6",
+  },
+  saveButton: {
+    height: s(50),
+    borderRadius: s(30),
+    backgroundColor: "#A37D5D",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  saveButtonDisabled: {
+    backgroundColor: "#9D9D9D",
+  },
+  saveButtonText: {
+    color: "#FFFAF6",
+    fontSize: fs(16),
+    fontFamily: "Inter",
+    fontWeight: "600",
+  },
+  toast: { position: "absolute", bottom: s(130), left: s(20), right: s(20), backgroundColor: "#202C39", paddingHorizontal: s(24), paddingVertical: s(12), borderRadius: s(30), zIndex: 100, alignItems: "center" },
   toastText: { color: "#FFFAF6", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
-});б
+});

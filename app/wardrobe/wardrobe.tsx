@@ -1,8 +1,9 @@
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Modal,
@@ -36,6 +37,8 @@ const closeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
 export default function WardrobeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { addedToFolders } = useLocalSearchParams<{ addedToFolders?: string }>();
+
   const [folders, setFolders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isOffline, setIsOffline] = useState(false);
@@ -47,7 +50,27 @@ export default function WardrobeScreen() {
   const [newFolderName, setNewFolderName] = useState("");
   const [createFolderName, setCreateFolderName] = useState("");
 
+  // Toast
+  const toastOpacity = useRef(new Animated.Value(0)).current;
+  const [toastMessage, setToastMessage] = useState("");
+
   useEffect(() => { loadFolders(); }, []);
+
+  useEffect(() => {
+    if (addedToFolders) {
+      setToastMessage(`Zdjęcie dodane do: ${addedToFolders}`);
+      showToast();
+    }
+  }, [addedToFolders]);
+
+  const showToast = () => {
+    toastOpacity.setValue(0);
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.delay(2500),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 600, useNativeDriver: true }),
+    ]).start();
+  };
 
   const loadFolders = async () => {
     try {
@@ -172,6 +195,13 @@ export default function WardrobeScreen() {
         }}
       />
 
+      {/* Toast informacyjny */}
+      {toastMessage !== "" && (
+        <Animated.View style={[styles.toast, { opacity: toastOpacity }]}>
+          <Text style={styles.toastText}>{toastMessage}</Text>
+        </Animated.View>
+      )}
+
       <Modal visible={folderOptionsModalVisible} transparent animationType="fade" onRequestClose={() => setFolderOptionsModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
@@ -222,19 +252,8 @@ export default function WardrobeScreen() {
                   <SvgXml xml={closeIcon} width={24} height={24} />
                 </TouchableOpacity>
               </View>
-              <TextInput
-                style={styles.modalInput}
-                value={createFolderName}
-                onChangeText={setCreateFolderName}
-                placeholder="Wpisz..."
-                placeholderTextColor="#9D9D9D"
-                autoFocus
-              />
-              <TouchableOpacity
-                style={[styles.modalButton, createFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive]}
-                onPress={handleCreateConfirm}
-                disabled={!createFolderName.trim()}
-              >
+              <TextInput style={styles.modalInput} value={createFolderName} onChangeText={setCreateFolderName} placeholder="Wpisz..." placeholderTextColor="#9D9D9D" autoFocus />
+              <TouchableOpacity style={[styles.modalButton, createFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive]} onPress={handleCreateConfirm} disabled={!createFolderName.trim()}>
                 <Text style={styles.modalButtonText}>Stwórz</Text>
               </TouchableOpacity>
             </View>
@@ -252,19 +271,8 @@ export default function WardrobeScreen() {
                   <SvgXml xml={closeIcon} width={24} height={24} />
                 </TouchableOpacity>
               </View>
-              <TextInput
-                style={styles.modalInput}
-                value={newFolderName}
-                onChangeText={setNewFolderName}
-                placeholder="Wpisz..."
-                placeholderTextColor="#9D9D9D"
-                autoFocus
-              />
-              <TouchableOpacity
-                style={[styles.modalButton, renameChanged ? styles.modalButtonActive : styles.modalButtonInactive]}
-                onPress={handleRenameConfirm}
-                disabled={!renameChanged}
-              >
+              <TextInput style={styles.modalInput} value={newFolderName} onChangeText={setNewFolderName} placeholder="Wpisz..." placeholderTextColor="#9D9D9D" autoFocus />
+              <TouchableOpacity style={[styles.modalButton, renameChanged ? styles.modalButtonActive : styles.modalButtonInactive]} onPress={handleRenameConfirm} disabled={!renameChanged}>
                 <Text style={styles.modalButtonText}>Zapisz</Text>
               </TouchableOpacity>
             </View>
@@ -288,6 +296,18 @@ const styles = StyleSheet.create({
   row: { justifyContent: "space-between", marginBottom: 19 },
   folder: { width: "47%", aspectRatio: 1, borderRadius: 30, backgroundColor: "rgba(163, 125, 93, 0.2)", alignItems: "center", justifyContent: "center" },
   folderText: { fontSize: 16, fontWeight: "700", color: "#A37D5D", fontFamily: "Inter", marginTop: 6, textAlign: "center" },
+  toast: {
+    position: "absolute",
+    bottom: 100,
+    left: 20,
+    right: 20,
+    backgroundColor: "#A37D5D",
+    borderRadius: 30,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    zIndex: 100,
+  },
+  toastText: { color: "#FFFAF6", fontSize: 14, fontFamily: "Inter", fontWeight: "500", textAlign: "center" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 12 },
   modalHeader: { flexDirection: "row", justifyContent: "center", alignItems: "center", width: "100%", position: "relative" },
