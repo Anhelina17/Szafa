@@ -179,6 +179,7 @@ export default function SelectImagesScreen() {
             keyExtractor={(item) => item.id}
             numColumns={2}
             columnWrapperStyle={styles.row}
+            style={{ flex: 1 }}
             contentContainerStyle={[
               styles.listContent,
               showBar && { paddingBottom: 180 },
@@ -234,16 +235,10 @@ export default function SelectImagesScreen() {
                 Czy na pewno chcesz przerwać tworzenie stylizacji?
               </Text>
               <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={styles.modalButtonSafe}
-                  onPress={() => setCancelModalVisible(false)}
-                >
+                <TouchableOpacity style={styles.modalButtonSafe} onPress={() => setCancelModalVisible(false)}>
                   <Text style={styles.modalButtonSafeText}>Zostaw</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.modalButtonDanger}
-                  onPress={handleCancelConfirm}
-                >
+                <TouchableOpacity style={styles.modalButtonDanger} onPress={handleCancelConfirm}>
                   <Text style={styles.modalButtonDangerText}>Przerwij</Text>
                 </TouchableOpacity>
               </View>
@@ -273,9 +268,11 @@ export default function SelectImagesScreen() {
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={styles.row}
+          style={{ flex: 1 }}
           contentContainerStyle={[
             styles.listContent,
             showBar && { paddingBottom: 180 },
+            folderImages.length === 0 && { flex: 1, paddingBottom: 80 },
           ]}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -297,8 +294,8 @@ export default function SelectImagesScreen() {
             </TouchableOpacity>
           )}
           ListEmptyComponent={
-            <View style={styles.center}>
-              <Text style={styles.emptyText}>Brak zdjęć w tym folderze</Text>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Tutaj jeszcze nic nie ma</Text>
             </View>
           }
         />
@@ -326,16 +323,10 @@ export default function SelectImagesScreen() {
               Czy na pewno chcesz przerwać tworzenie stylizacji?
             </Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalButtonSafe}
-                onPress={() => setCancelModalVisible(false)}
-              >
+              <TouchableOpacity style={styles.modalButtonSafe} onPress={() => setCancelModalVisible(false)}>
                 <Text style={styles.modalButtonSafeText}>Zostaw</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalButtonDanger}
-                onPress={handleCancelConfirm}
-              >
+              <TouchableOpacity style={styles.modalButtonDanger} onPress={handleCancelConfirm}>
                 <Text style={styles.modalButtonDangerText}>Przerwij</Text>
               </TouchableOpacity>
             </View>
@@ -373,10 +364,7 @@ function SelectedBar({
               style={styles.selectedThumbImage}
               resizeMode="contain"
             />
-            <TouchableOpacity
-              style={styles.removeButton}
-              onPress={() => onRemove(img.id)}
-            >
+            <TouchableOpacity style={styles.removeButton} onPress={() => onRemove(img.id)}>
               <SvgXml xml={closeIcon} width={16} height={16} />
             </TouchableOpacity>
           </View>
@@ -395,199 +383,35 @@ function SelectedBar({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFAF6",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 64,
-    paddingBottom: 16,
-    gap: 8,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    lineHeight: 32,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 40,
-  },
-  listContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-  },
-  row: {
-    justifyContent: "space-between",
-    marginBottom: 19,
-  },
-  folder: {
-    width: "47%",
-    aspectRatio: 1,
-    borderRadius: 30,
-    backgroundColor: "rgba(163, 125, 93, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  folderText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#A37D5D",
-    fontFamily: "Inter",
-    textAlign: "center",
-  },
-  imageContainer: {
-    width: "47%",
-    height: 230,
-    borderRadius: 30,
-    backgroundColor: "#FFFAF6",
-    borderWidth: 2,
-    borderColor: "#EDE1D7",
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  checkbox: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-  },
-  emptyText: {
-    color: "#A37D5D",
-    fontSize: 16,
-    fontFamily: "Inter",
-  },
-  selectedBar: {
-    position: "absolute",
-    bottom: 14,
-    left: 12,
-    right: 12,
-    backgroundColor: "#202C39",
-    paddingTop: 12,
-    paddingBottom: 20,
-    paddingHorizontal: 12,
-    borderRadius: 30,
-    gap: 8,
-  },
-  selectedScroll: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  selectedThumb: {
-    width: 84,
-    height: 70,
-    borderRadius: 18,
-    backgroundColor: "#EDE1D7",
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  selectedThumbImage: {
-    width: "100%",
-    height: "100%",
-  },
-  removeButton: {
-    position: "absolute",
-    top: 4,
-    right: 4,
-  },
-  selectedBarButtons: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  cancelButton: {
-    flex: 1,
-    height: 50,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "#EDE1D7",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cancelButtonText: {
-    color: "#EDE1D7",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  nextButton: {
-    flex: 1,
-    height: 50,
-    borderRadius: 30,
-    backgroundColor: "#A37D5D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  nextButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBox: {
-    backgroundColor: "#EDE1D7",
-    borderRadius: 30,
-    padding: 24,
-    width: 353,
-    alignItems: "center",
-    gap: 16,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  modalButtonSafe: {
-    width: 152,
-    height: 50,
-    borderRadius: 30,
-    backgroundColor: "#A37D5D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonSafeText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  modalButtonDanger: {
-    width: 152,
-    height: 50,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "#E05744",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonDangerText: {
-    color: "#E05744",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
+  container: { flex: 1, backgroundColor: "#FFFAF6" },
+  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 64, paddingBottom: 16, gap: 8 },
+  headerTitle: { fontSize: 24, fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: 32 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingBottom: 80 },
+  listContent: { paddingHorizontal: 20, paddingTop: 8 },
+  row: { justifyContent: "space-between", marginBottom: 19 },
+  folder: { width: "47%", aspectRatio: 1, borderRadius: 30, backgroundColor: "rgba(163, 125, 93, 0.2)", alignItems: "center", justifyContent: "center" },
+  folderText: { fontSize: 16, fontWeight: "700", color: "#A37D5D", fontFamily: "Inter", textAlign: "center" },
+  imageContainer: { width: "47%", height: 230, borderRadius: 30, backgroundColor: "#FFFAF6", borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  image: { width: "100%", height: "100%" },
+  checkbox: { position: "absolute", top: 12, right: 12 },
+  emptyText: { color: "#A37D5D", fontSize: 16, fontFamily: "Inter" },
+  selectedBar: { position: "absolute", bottom: 14, left: 12, right: 12, backgroundColor: "#202C39", paddingTop: 12, paddingBottom: 20, paddingHorizontal: 12, borderRadius: 30, gap: 8 },
+  selectedScroll: { flexDirection: "row", gap: 8 },
+  selectedThumb: { width: 84, height: 70, borderRadius: 18, backgroundColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  selectedThumbImage: { width: "100%", height: "100%" },
+  removeButton: { position: "absolute", top: 4, right: 4 },
+  selectedBarButtons: { flexDirection: "row", gap: 8 },
+  cancelButton: { flex: 1, height: 50, borderRadius: 30, borderWidth: 2, borderColor: "#EDE1D7", justifyContent: "center", alignItems: "center" },
+  cancelButtonText: { color: "#EDE1D7", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  nextButton: { flex: 1, height: 50, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  nextButtonText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 16 },
+  modalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: 24 },
+  modalButtons: { flexDirection: "row", gap: 12 },
+  modalButtonSafe: { width: 152, height: 50, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDanger: { width: 152, height: 50, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonDangerText: { color: "#E05744", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
 });

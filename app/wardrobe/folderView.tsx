@@ -99,7 +99,7 @@ export default function FolderViewScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#A37D5D" />
       </View>
     );
@@ -121,7 +121,7 @@ export default function FolderViewScreen() {
       )}
 
       {images.length === 0 ? (
-        <View style={styles.center}>
+        <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Tutaj jeszcze nic nie ma</Text>
         </View>
       ) : (
@@ -194,16 +194,22 @@ export default function FolderViewScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFAF6" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#FFFAF6" },
   header: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 16, paddingTop: 64, paddingHorizontal: 20 },
   title: { fontSize: 24, fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: 32 },
   offlineBanner: { backgroundColor: "#FFF3E0", borderRadius: 10, padding: 10, marginHorizontal: 20, marginBottom: 12, alignItems: "center", borderWidth: 1, borderColor: "#A37D5D" },
   offlineText: { color: "#A37D5D", fontSize: 13, fontFamily: "Inter", fontWeight: "500" },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 80,
+  },
+  emptyText: { color: "#A37D5D", fontSize: 16, fontFamily: "Inter", fontWeight: "400", textAlign: "center" },
   row: { justifyContent: "space-between", marginBottom: 19 },
   imageContainer: { width: "47%", height: 230, borderRadius: 30, backgroundColor: "#FFFAF6", borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
   image: { width: "100%", height: "100%" },
   heartButton: { position: "absolute", top: 12, right: 12 },
-  emptyText: { color: "#A37D5D", fontSize: 16, fontFamily: "Inter", fontWeight: "400", textAlign: "center" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 12 },
   modalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: 24 },

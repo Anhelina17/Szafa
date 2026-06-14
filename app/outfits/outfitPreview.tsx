@@ -377,24 +377,24 @@ const styles = StyleSheet.create({
   },
   moodboardCard: {
     width: s(331),
-    height: s(558),
+    minHeight: s(300),
     borderRadius: s(30),
     borderWidth: 2,
     borderColor: "#EDE1D7",
-    overflow: "hidden",
     backgroundColor: "#FFFAF6",
+    overflow: "hidden",
   },
   layout: {
-    flex: 1,
     flexDirection: "row",
   },
   leftColumn: {
     flex: 1.3,
     flexDirection: "column",
+    flexShrink: 1,
   },
   leftColumnImage: {
     width: "100%",
-    height: 200,
+    height: s(180),
     backgroundColor: "#FFFAF6",
   },
   rightColumn: {
@@ -402,8 +402,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
   },
   rightSlot: {
-    flex: 1,
-    height: 200,
+    height: s(180),
   },
   rightColumnImage: {
     width: "100%",
