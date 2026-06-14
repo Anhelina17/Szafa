@@ -99,7 +99,7 @@ export default function FavoritesScreen() {
       </View>
 
       {images.length === 0 ? (
-        <View style={styles.center}>
+        <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>Tutaj jeszcze nic nie ma</Text>
         </View>
       ) : (
@@ -131,29 +131,15 @@ export default function FavoritesScreen() {
         />
       )}
 
-      {/* Modal usunięcia z ulubionych */}
-      <Modal
-        visible={removeFavoriteModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setRemoveFavoriteModalVisible(false)}
-      >
+      <Modal visible={removeFavoriteModalVisible} transparent animationType="fade" onRequestClose={() => setRemoveFavoriteModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              Czy na pewno chcesz usunąć to zdjęcie z "Ulubionych"?
-            </Text>
+            <Text style={styles.modalTitle}>Czy na pewno chcesz usunąć to zdjęcie z "Ulubionych"?</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalButtonSafe}
-                onPress={() => setRemoveFavoriteModalVisible(false)}
-              >
+              <TouchableOpacity style={styles.modalButtonSafe} onPress={() => setRemoveFavoriteModalVisible(false)}>
                 <Text style={styles.modalButtonSafeText}>Nie</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalButtonDanger}
-                onPress={handleRemoveFavoriteConfirm}
-              >
+              <TouchableOpacity style={styles.modalButtonDanger} onPress={handleRemoveFavoriteConfirm}>
                 <Text style={styles.modalButtonDangerText}>Tak</Text>
               </TouchableOpacity>
             </View>
@@ -161,58 +147,29 @@ export default function FavoritesScreen() {
         </View>
       </Modal>
 
-      {/* Modal opcji zdjęcia (long press) */}
-      <Modal
-        visible={deleteOptionsModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeleteOptionsModalVisible(false)}
-      >
+      <Modal visible={deleteOptionsModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteOptionsModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Co chcesz zrobić z tym zdjęciem?</Text>
-            <TouchableOpacity
-              style={styles.modalButtonDangerFull}
-              onPress={() => {
-                setDeleteOptionsModalVisible(false);
-                setDeleteConfirmModalVisible(true);
-              }}
-            >
+            <TouchableOpacity style={styles.modalButtonDangerFull} onPress={() => { setDeleteOptionsModalVisible(false); setDeleteConfirmModalVisible(true); }}>
               <Text style={styles.modalButtonDangerText}>Usuń zdjęcie</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButtonSafeFull}
-              onPress={() => setDeleteOptionsModalVisible(false)}
-            >
+            <TouchableOpacity style={styles.modalButtonSafeFull} onPress={() => setDeleteOptionsModalVisible(false)}>
               <Text style={styles.modalButtonSafeFullText}>Anuluj</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      {/* Modal potwierdzenia usunięcia zdjęcia */}
-      <Modal
-        visible={deleteConfirmModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeleteConfirmModalVisible(false)}
-      >
+      <Modal visible={deleteConfirmModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteConfirmModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              Czy na pewno chcesz usunąć to zdjęcie?
-            </Text>
+            <Text style={styles.modalTitle}>Czy na pewno chcesz usunąć to zdjęcie?</Text>
             <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalButtonSafe}
-                onPress={() => setDeleteConfirmModalVisible(false)}
-              >
+              <TouchableOpacity style={styles.modalButtonSafe} onPress={() => setDeleteConfirmModalVisible(false)}>
                 <Text style={styles.modalButtonSafeText}>Zostaw</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalButtonDanger}
-                onPress={handleDeleteConfirm}
-              >
+              <TouchableOpacity style={styles.modalButtonDanger} onPress={handleDeleteConfirm}>
                 <Text style={styles.modalButtonDangerText}>Usuń</Text>
               </TouchableOpacity>
             </View>
@@ -226,140 +183,26 @@ export default function FavoritesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFAF6",
-    paddingHorizontal: 20,
-    paddingTop: 64,
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  backButton: {
-    marginRight: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    lineHeight: 32,
-  },
-  row: {
-    justifyContent: "space-between",
-    marginBottom: 19,
-  },
-  imageContainer: {
-    width: "47%",
-    height: 230,
-    borderRadius: 30,
-    backgroundColor: "#FFFAF6",
-    borderWidth: 2,
-    borderColor: "#EDE1D7",
-    overflow: "hidden",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  image: {
-    width: "100%",
-    height: "100%",
-  },
-  heartButton: {
-    position: "absolute",
-    top: 12,
-    right: 12,
-  },
-  emptyText: {
-    color: "#A37D5D",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-    lineHeight: 24,
-    textAlign: "center",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalBox: {
-    backgroundColor: "#EDE1D7",
-    borderRadius: 30,
-    padding: 24,
-    width: 353,
-    alignItems: "center",
-    gap: 12,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#202C39",
-    fontFamily: "Inter",
-    textAlign: "center",
-    lineHeight: 24,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  modalButtonSafe: {
-    width: 152,
-    height: 50,
-    borderRadius: 30,
-    backgroundColor: "#A37D5D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonSafeText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  modalButtonDanger: {
-    width: 152,
-    height: 50,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "#E05744",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonDangerText: {
-    color: "#E05744",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-  modalButtonDangerFull: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: "#E05744",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonSafeFull: {
-    width: 305,
-    height: 48,
-    borderRadius: 30,
-    backgroundColor: "#A37D5D",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalButtonSafeFullText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
+  container: { flex: 1, backgroundColor: "#FFFAF6", paddingHorizontal: 20, paddingTop: 64 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingBottom: 80 },
+  emptyText: { color: "#A37D5D", fontSize: 16, fontFamily: "Inter", fontWeight: "400", lineHeight: 24, textAlign: "center" },
+  header: { flexDirection: "row", alignItems: "center", marginBottom: 24 },
+  backButton: { marginRight: 8 },
+  title: { fontSize: 24, fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: 32 },
+  row: { justifyContent: "space-between", marginBottom: 19 },
+  imageContainer: { width: "47%", height: 230, borderRadius: 30, backgroundColor: "#FFFAF6", borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  image: { width: "100%", height: "100%" },
+  heartButton: { position: "absolute", top: 12, right: 12 },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
+  modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 12 },
+  modalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: 24 },
+  modalButtons: { flexDirection: "row", gap: 12 },
+  modalButtonSafe: { width: 152, height: 50, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDanger: { width: 152, height: 50, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonDangerText: { color: "#E05744", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDangerFull: { width: 305, height: 48, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeFull: { width: 305, height: 48, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeFullText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
 });

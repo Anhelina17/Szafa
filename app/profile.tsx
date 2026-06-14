@@ -12,7 +12,6 @@ import { SvgXml } from "react-native-svg";
 import TabBar from "../components/TabBar";
 import { useAuth } from "../context/AuthContext";
 import { getFolders } from "../services/folders";
-import { getImagesByFolder } from "../services/images";
 import { supabase } from "../supabaseClient";
 import { fs, s } from "../utils/scale";
 
@@ -41,12 +40,11 @@ export default function ProfileScreen() {
       const folders = await getFolders();
       setFolderCount(folders?.length ?? 0);
 
-      let total = 0;
-      for (const folder of folders ?? []) {
-        const imgs = await getImagesByFolder(folder.id);
-        total += imgs?.length ?? 0;
-      }
-      setClothesCount(total);
+      const { count: imagesCount } = await supabase
+  .from("images")
+  .select("id", { count: "exact", head: true })
+  .eq("user_id", user.id);
+setClothesCount(imagesCount ?? 0);
 
       const { count } = await supabase
         .from("outfits")

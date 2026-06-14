@@ -185,9 +185,12 @@ export default function FolderViewScreen() {
     if (!selectedItem) return;
     setDeleteConfirmModalVisible(false);
     try {
+      console.log("Usuwam zdjęcie:", selectedItem.id);
       await deleteImage(selectedItem.id, selectedItem.image_url);
+      console.log("Zdjęcie usunięte pomyślnie");
       await loadImages();
     } catch (e) {
+      console.log("BŁĄD USUWANIA:", e);
       Alert.alert("Błąd", "Nie udało się usunąć zdjęcia");
     }
   };
