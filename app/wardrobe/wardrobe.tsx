@@ -50,26 +50,28 @@ export default function WardrobeScreen() {
   const [newFolderName, setNewFolderName] = useState("");
   const [createFolderName, setCreateFolderName] = useState("");
 
-  // Toast
-  const toastOpacity = useRef(new Animated.Value(0)).current;
-  const [toastMessage, setToastMessage] = useState("");
+  // Blur overlay
+  const blurOpacity = useRef(new Animated.Value(0)).current;
+  const [blurVisible, setBlurVisible] = useState(false);
+  const [blurMessage, setBlurMessage] = useState("");
 
   useEffect(() => { loadFolders(); }, []);
 
   useEffect(() => {
     if (addedToFolders) {
-      setToastMessage(`Zdjęcie dodane do: ${addedToFolders}`);
-      showToast();
+      setBlurMessage(`Zdjęcie dodane do: ${addedToFolders}`);
+      showBlur();
     }
   }, [addedToFolders]);
 
-  const showToast = () => {
-    toastOpacity.setValue(0);
+  const showBlur = () => {
+    setBlurVisible(true);
+    blurOpacity.setValue(0);
     Animated.sequence([
-      Animated.timing(toastOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
-      Animated.delay(2500),
-      Animated.timing(toastOpacity, { toValue: 0, duration: 600, useNativeDriver: true }),
-    ]).start();
+      Animated.timing(blurOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+      Animated.delay(2000),
+      Animated.timing(blurOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+    ]).start(() => setBlurVisible(false));
   };
 
   const loadFolders = async () => {
@@ -195,10 +197,10 @@ export default function WardrobeScreen() {
         }}
       />
 
-      {/* Toast informacyjny */}
-      {toastMessage !== "" && (
-        <Animated.View style={[styles.toast, { opacity: toastOpacity }]}>
-          <Text style={styles.toastText}>{toastMessage}</Text>
+      {/* Blur overlay */}
+      {blurVisible && (
+        <Animated.View style={[styles.blurOverlay, { opacity: blurOpacity }]}>
+          <Text style={styles.blurText}>{blurMessage}</Text>
         </Animated.View>
       )}
 
@@ -296,18 +298,22 @@ const styles = StyleSheet.create({
   row: { justifyContent: "space-between", marginBottom: 19 },
   folder: { width: "47%", aspectRatio: 1, borderRadius: 30, backgroundColor: "rgba(163, 125, 93, 0.2)", alignItems: "center", justifyContent: "center" },
   folderText: { fontSize: 16, fontWeight: "700", color: "#A37D5D", fontFamily: "Inter", marginTop: 6, textAlign: "center" },
-  toast: {
+  blurOverlay: {
     position: "absolute",
-    bottom: 100,
-    left: 20,
-    right: 20,
-    backgroundColor: "#A37D5D",
-    borderRadius: 30,
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 100,
+    backgroundColor: "rgba(0,0,0,0.50)",
   },
-  toastText: { color: "#FFFAF6", fontSize: 14, fontFamily: "Inter", fontWeight: "500", textAlign: "center" },
+  blurText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#EDE1D7",
+    fontFamily: "Inter",
+    textAlign: "center",
+    paddingHorizontal: 40,
+  },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 12 },
   modalHeader: { flexDirection: "row", justifyContent: "center", alignItems: "center", width: "100%", position: "relative" },

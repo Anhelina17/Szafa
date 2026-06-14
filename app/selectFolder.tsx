@@ -49,6 +49,8 @@ export default function SelectFolderScreen() {
   const safeImageId = Array.isArray(imageId) ? imageId[0] : imageId;
   const isMove = moveMode === "true";
   const safeSourceFolderId = Array.isArray(sourceFolderId) ? sourceFolderId[0] : sourceFolderId;
+  // Если пришли из folderView (есть sourceFolderId и не moveMode) — возвращаемся туда
+  const returnToFolder = !isMove && !!safeSourceFolderId;
 
   const [folders, setFolders] = useState<any[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
@@ -61,16 +63,8 @@ export default function SelectFolderScreen() {
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<any>(null);
   const [newFolderName, setNewFolderName] = useState("");
-  const [toastMessage, setToastMessage] = useState("Zdjęcie dodane! ✓");
+  const [toastMessage, setToastMessage] = useState("");
   const toastOpacity = useRef(new Animated.Value(0)).current;
-
-  const showToast = () => {
-    Animated.sequence([
-      Animated.timing(toastOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
-      Animated.delay(2000),
-      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
-    ]).start();
-  };
 
   useEffect(() => {
     loadFolders();
@@ -80,9 +74,9 @@ export default function SelectFolderScreen() {
     try {
       const data = await getFolders();
       // W trybie przenoszenia wykluczamy folder źródłowy
-      const filtered = isMove && safeSourceFolderId
-        ? (data || []).filter((f: any) => f.id !== safeSourceFolderId)
-        : (data || []);
+      const filtered = safeSourceFolderId
+  ? (data || []).filter((f: any) => f.id !== safeSourceFolderId)
+  : (data || []);
       setFolders(filtered);
     } catch (e) {
       console.error(e);
@@ -141,10 +135,22 @@ export default function SelectFolderScreen() {
         .map((id) => folders.find((f: any) => f.id === id)?.name)
         .filter(Boolean)
         .join(", ");
-      router.replace({
-        pathname: "/wardrobe/wardrobe",
-        params: { addedToFolders: names },
-      } as any);
+      if (returnToFolder) {
+        // Wróć do widoku folderu z informacją
+        router.replace({
+          pathname: "/wardrobe/folderView",
+          params: {
+            folderId: safeSourceFolderId,
+            folderName: sourceFolderName ?? "",
+            addedToFolderNames: names,
+          },
+        } as any);
+      } else {
+        router.replace({
+          pathname: "/wardrobe/wardrobe",
+          params: { addedToFolders: names },
+        } as any);
+      }
     } catch (e) {
       console.error(e);
       alert("Błąd zapisu");
@@ -218,7 +224,7 @@ export default function SelectFolderScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {}
+        {/* Przycisk stwórz folder — tylko w trybie dodawania */}
         {!isMove && (
           <TouchableOpacity
             style={styles.createButton}
@@ -265,7 +271,9 @@ export default function SelectFolderScreen() {
             onPress={handleSave}
             disabled={selected.length === 0}
           >
-            <Text style={styles.saveButtonText}>Zapisz</Text>
+            <Text style={styles.saveButtonText}>
+  {selected.length > 0 ? `Zapisz (${selected.length})` : "Zapisz"}
+</Text>
           </TouchableOpacity>
         </View>
       )}

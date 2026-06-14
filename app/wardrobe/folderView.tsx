@@ -63,17 +63,35 @@ export default function FolderViewScreen() {
   );
 
   // Sprawdź parametry po powrocie z selectFolder
-  const { movedImageId, movedToFolderId, movedToFolderName } = useLocalSearchParams<{
+  const { movedImageId, movedToFolderId, movedToFolderName, addedToFolderNames } = useLocalSearchParams<{
     movedImageId?: string;
     movedToFolderId?: string;
     movedToFolderName?: string;
+    addedToFolderNames?: string;
   }>();
+
+  const infoBlurOpacity = useRef(new Animated.Value(0)).current;
+  const [infoBlurVisible, setInfoBlurVisible] = useState(false);
+  const [infoBlurMessage, setInfoBlurMessage] = useState("");
 
   useEffect(() => {
     if (movedImageId && movedToFolderId && movedToFolderName) {
       showUndoToast(movedImageId, movedToFolderId, movedToFolderName);
     }
   }, [movedImageId, movedToFolderId, movedToFolderName]);
+
+  useEffect(() => {
+    if (addedToFolderNames) {
+      setInfoBlurMessage(`Dodano do: ${addedToFolderNames}`);
+      setInfoBlurVisible(true);
+      infoBlurOpacity.setValue(0);
+      Animated.sequence([
+        Animated.timing(infoBlurOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.delay(2000),
+        Animated.timing(infoBlurOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
+      ]).start(() => setInfoBlurVisible(false));
+    }
+  }, [addedToFolderNames]);
 
   const showUndoToast = (imageId: string, targetFolderId: string, targetFolderName: string) => {
     // Anuluj poprzedni timer jeśli istnieje
@@ -188,6 +206,20 @@ export default function FolderViewScreen() {
     });
   };
 
+  const handleOpenAddFolder = () => {
+    setDeleteOptionsModalVisible(false);
+    if (!selectedItem) return;
+    router.push({
+      pathname: "/selectFolder",
+      params: {
+        imageId: selectedItem.id,
+        moveMode: "false",
+        sourceFolderId: folderId,
+        sourceFolderName: folderName,
+      },
+    });
+  };
+
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
@@ -273,6 +305,13 @@ export default function FolderViewScreen() {
         </Animated.View>
       )}
 
+      {/* Blur overlay — dodano do folderów */}
+      {infoBlurVisible && (
+        <Animated.View style={[styles.blurOverlay, { opacity: infoBlurOpacity }]}>
+          <Text style={styles.blurText}>{infoBlurMessage}</Text>
+        </Animated.View>
+      )}
+
       {/* Modalne: opcje dla zdjęcia */}
       <Modal visible={deleteOptionsModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteOptionsModalVisible(false)}>
         <View style={styles.modalOverlay}>
@@ -280,6 +319,9 @@ export default function FolderViewScreen() {
             <Text style={styles.modalTitle}>Co chcesz zrobić z tym zdjęciem?</Text>
             <TouchableOpacity style={styles.modalButtonMoveFull} onPress={handleOpenMoveFolder}>
               <Text style={styles.modalButtonMoveText}>Przenieś do innego folderu</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalButtonMoveFull} onPress={handleOpenAddFolder}>
+              <Text style={styles.modalButtonMoveText}>Dodaj do innych folderów</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.modalButtonDangerFull} onPress={() => { setDeleteOptionsModalVisible(false); setDeleteConfirmModalVisible(true); }}>
               <Text style={styles.modalButtonDangerText}>Usuń zdjęcie</Text>
@@ -365,6 +407,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   undoButtonText: { color: "#FFFFFF", fontSize: 14, fontFamily: "Inter", fontWeight: "600" },
+  blurOverlay: {
+    position: "absolute",
+    top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 100,
+    backgroundColor: "rgba(0,0,0,0.50)",
+  },
+  blurText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#EDE1D7",
+    fontFamily: "Inter",
+    textAlign: "center",
+    paddingHorizontal: 40,
+  },
   progressBarBg: { height: 3, backgroundColor: "rgba(163,125,93,0.2)", overflow: "hidden" },
   progressBarFill: { height: 3, backgroundColor: "#A37D5D" },
 });
