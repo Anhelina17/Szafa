@@ -16,10 +16,11 @@ import {
 import { SvgXml } from "react-native-svg";
 import { createFolder, deleteFolder, getFolders, renameFolder } from "../services/folders";
 import { addImageToFolders } from "../services/images";
+import { supabase } from "../supabaseClient";
 import { fs, s } from "../utils/scale";
 
 const backIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <path d="M16.0603 2.45383C16.3415 2.73512 16.4995 3.11658 16.4995 3.51433C16.4995 3.91207 16.3415 4.29354 16.0603 4.57483L8.63533 11.9998L16.0603 19.4248C16.3336 19.7077 16.4848 20.0866 16.4813 20.4799C16.4779 20.8732 16.3202 21.2494 16.0421 21.5276C15.7639 21.8057 15.3877 21.9634 14.9944 21.9668C14.6011 21.9703 14.2222 21.8191 13.9393 21.5458L5.45383 13.0603C5.17262 12.779 5.01465 12.3976 5.01465 11.9998C5.01465 11.6021 5.17262 11.2206 5.45383 10.9393L13.9393 2.45383C14.2206 2.17262 14.6021 2.01465 14.9998 2.01465C15.3976 2.01465 15.779 2.17262 16.0603 2.45383Z" fill="#202C39"/>
+  <path d="M16.0603 2.45383C16.3415 2.73512 16.4995 3.11658 16.4995 3.51433C16.4995 3.91207 16.3415 4.29354 16.0603 4.57483L8.63533 11.9998L16.0603 19.4248C16.3336 19.7077 16.4848 20.0866 16.4813 20.4799C16.4779 20.8732 16.3202 21.2494 16.0421 21.5276C15.7639 21.8057 15.3877 21.9634 14.9944 21.9671C14.6011 21.9705 14.2222 21.8193 13.9393 21.5461L5.45383 13.0606C5.17262 12.779 5.01465 12.3976 5.01465 11.9998C5.01465 11.6021 5.17262 11.2206 5.45383 10.9393L13.9393 2.45383C14.2206 2.17262 14.6021 2.01465 14.9998 2.01465C15.3976 2.01465 15.779 2.17262 16.0603 2.45383Z" fill="#202C39"/>
 </svg>`;
 
 const plusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
@@ -39,8 +40,16 @@ const closeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24
 
 export default function SelectFolderScreen() {
   const router = useRouter();
-  const { imageId } = useLocalSearchParams<{ imageId: string }>();
+  const { imageId, moveMode, sourceFolderId, sourceFolderName } = useLocalSearchParams<{
+    imageId: string;
+    moveMode: string;
+    sourceFolderId: string;
+    sourceFolderName: string;
+  }>();
   const safeImageId = Array.isArray(imageId) ? imageId[0] : imageId;
+  const isMove = moveMode === "true";
+  const safeSourceFolderId = Array.isArray(sourceFolderId) ? sourceFolderId[0] : sourceFolderId;
+
   const [folders, setFolders] = useState<any[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -69,34 +78,56 @@ export default function SelectFolderScreen() {
   const loadFolders = async () => {
     try {
       const data = await getFolders();
-      setFolders(data || []);
+      // W trybie przenoszenia wykluczamy folder źródłowy
+      const filtered = isMove && safeSourceFolderId
+        ? (data || []).filter((f: any) => f.id !== safeSourceFolderId)
+        : (data || []);
+      setFolders(filtered);
     } catch (e) {
       console.error(e);
     }
   };
 
-  const toggleFolder = async (folderId: string) => {
-    setSelected([folderId]);
-    // Krótka chwila z checkmarkiem, potem zapis i przejście
-    setTimeout(async () => {
-      try {
-        if (!safeImageId) return;
-        await addImageToFolders(safeImageId, [folderId]);
+  const toggleFolder = async (targetFolderId: string) => {
+    setSelected([targetFolderId]);
+    try {
+      if (!safeImageId) return;
+      if (isMove) {
+        await supabase
+          .from("image_folders")
+          .delete()
+          .eq("image_id", safeImageId)
+          .eq("folder_id", safeSourceFolderId);
+        await supabase
+          .from("image_folders")
+          .insert({ image_id: safeImageId, folder_id: targetFolderId });
+        const targetName = folders.find((f: any) => f.id === targetFolderId)?.name ?? "";
+        router.replace({
+          pathname: "/wardrobe/folderView",
+          params: {
+            folderId: safeSourceFolderId,
+            folderName: sourceFolderName ?? "",
+            movedImageId: safeImageId,
+            movedToFolderId: targetFolderId,
+            movedToFolderName: targetName,
+          },
+        } as any);
+      } else {
+        await addImageToFolders(safeImageId, [targetFolderId]);
         router.replace("/wardrobe/wardrobe");
-      } catch (e) {
-        console.error(e);
-        alert("Błąd zapisu");
-        setSelected([]);
       }
-    }, 600);
+    } catch (e) {
+      console.error(e);
+      alert("Błąd zapisu");
+      setSelected([]);
+    }
   };
 
   const handleLongPress = (folder: any) => {
+    if (isMove) return; // w trybie przenoszenia nie pokazujemy opcji folderu
     setSelectedFolder(folder);
     setFolderOptionsModalVisible(true);
   };
-
-
 
   const handleCreateConfirm = async () => {
     if (!createFolderName.trim()) return;
@@ -138,7 +169,6 @@ export default function SelectFolderScreen() {
     }
   };
 
-  // Grupowanie po 2 w wierszu
   const pairs: any[][] = [];
   for (let i = 0; i < folders.length; i += 2) {
     pairs.push(folders.slice(i, i + 2));
@@ -146,12 +176,13 @@ export default function SelectFolderScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <SvgXml xml={backIcon} width={s(24)} height={s(24)} />
         </TouchableOpacity>
-        <Text style={styles.title}>Dodaj zdjęcie do folderu</Text>
+        <Text style={styles.title}>
+          {isMove ? "Przenieś do folderu" : "Dodaj zdjęcie do folderu"}
+        </Text>
       </View>
 
       <ScrollView
@@ -159,16 +190,17 @@ export default function SelectFolderScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Przycisk stwórz folder */}
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={() => setCreateModalVisible(true)}
-        >
-          <SvgXml xml={plusIcon} width={s(30)} height={s(30)} />
-          <Text style={styles.createButtonText}>Stwórz folder</Text>
-        </TouchableOpacity>
+        {/* Przycisk stwórz folder — tylko w trybie dodawania */}
+        {!isMove && (
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => setCreateModalVisible(true)}
+          >
+            <SvgXml xml={plusIcon} width={s(30)} height={s(30)} />
+            <Text style={styles.createButtonText}>Stwórz folder</Text>
+          </TouchableOpacity>
+        )}
 
-        {/* Siatka folderów */}
         <View style={styles.grid}>
           {pairs.map((pair, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
@@ -195,8 +227,6 @@ export default function SelectFolderScreen() {
             </View>
           ))}
         </View>
-
-
       </ScrollView>
 
       <Animated.View style={[styles.toast, { opacity: toastOpacity }]}>
@@ -204,38 +234,20 @@ export default function SelectFolderScreen() {
       </Animated.View>
 
       {/* Modal opcji folderu */}
-      <Modal
-        visible={folderOptionsModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setFolderOptionsModalVisible(false)}
-      >
+      <Modal visible={folderOptionsModalVisible} transparent animationType="fade" onRequestClose={() => setFolderOptionsModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{selectedFolder?.name}</Text>
-              <TouchableOpacity
-                style={styles.modalCloseButton}
-                onPress={() => setFolderOptionsModalVisible(false)}
-              >
+              <TouchableOpacity style={styles.modalCloseButton} onPress={() => setFolderOptionsModalVisible(false)}>
                 <SvgXml xml={closeIcon} width={24} height={24} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalSubtitle}>Co chcesz zrobić z tym folderem?</Text>
-            <TouchableOpacity
-              style={styles.modalButtonPrimary}
-              onPress={() => {
-                setFolderOptionsModalVisible(false);
-                setNewFolderName(selectedFolder?.name ?? "");
-                setRenameModalVisible(true);
-              }}
-            >
+            <TouchableOpacity style={styles.modalButtonPrimary} onPress={() => { setFolderOptionsModalVisible(false); setNewFolderName(selectedFolder?.name ?? ""); setRenameModalVisible(true); }}>
               <Text style={styles.modalButtonPrimaryText}>Zmień nazwę</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.modalButtonDanger}
-              onPress={handleDelete}
-            >
+            <TouchableOpacity style={styles.modalButtonDanger} onPress={handleDelete}>
               <Text style={styles.modalButtonDangerText}>Usuń folder</Text>
             </TouchableOpacity>
           </View>
@@ -243,28 +255,15 @@ export default function SelectFolderScreen() {
       </Modal>
 
       {/* Modal potwierdzenia usunięcia */}
-      <Modal
-        visible={deleteConfirmModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setDeleteConfirmModalVisible(false)}
-      >
+      <Modal visible={deleteConfirmModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteConfirmModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.deleteModalBox}>
-            <Text style={styles.deleteModalTitle}>
-              Czy na pewno chcesz usunąć folder "{selectedFolder?.name}"?
-            </Text>
+            <Text style={styles.deleteModalTitle}>Czy na pewno chcesz usunąć folder "{selectedFolder?.name}"?</Text>
             <View style={styles.deleteModalButtons}>
-              <TouchableOpacity
-                style={styles.deleteModalButtonSafe}
-                onPress={() => setDeleteConfirmModalVisible(false)}
-              >
+              <TouchableOpacity style={styles.deleteModalButtonSafe} onPress={() => setDeleteConfirmModalVisible(false)}>
                 <Text style={styles.deleteModalButtonSafeText}>Zostaw</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.deleteModalButtonDanger}
-                onPress={handleDeleteConfirm}
-              >
+              <TouchableOpacity style={styles.deleteModalButtonDanger} onPress={handleDeleteConfirm}>
                 <Text style={styles.deleteModalButtonDangerText}>Usuń</Text>
               </TouchableOpacity>
             </View>
@@ -273,40 +272,18 @@ export default function SelectFolderScreen() {
       </Modal>
 
       {/* Modal tworzenia folderu */}
-      <Modal
-        visible={createModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCreateModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
+      <Modal visible={createModalVisible} transparent animationType="fade" onRequestClose={() => setCreateModalVisible(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Stwórz folder</Text>
-                <TouchableOpacity
-                  style={styles.modalCloseButton}
-                  onPress={() => { setCreateModalVisible(false); setCreateFolderName(""); }}
-                >
+                <TouchableOpacity style={styles.modalCloseButton} onPress={() => { setCreateModalVisible(false); setCreateFolderName(""); }}>
                   <SvgXml xml={closeIcon} width={24} height={24} />
                 </TouchableOpacity>
               </View>
-              <TextInput
-                style={styles.modalInput}
-                value={createFolderName}
-                onChangeText={setCreateFolderName}
-                placeholder="Wpisz..."
-                placeholderTextColor="#9D9D9D"
-                autoFocus
-              />
-              <TouchableOpacity
-                style={[styles.modalButton, createFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive]}
-                onPress={handleCreateConfirm}
-                disabled={!createFolderName.trim()}
-              >
+              <TextInput style={styles.modalInput} value={createFolderName} onChangeText={setCreateFolderName} placeholder="Wpisz..." placeholderTextColor="#9D9D9D" autoFocus />
+              <TouchableOpacity style={[styles.modalButton, createFolderName.trim() ? styles.modalButtonActive : styles.modalButtonInactive]} onPress={handleCreateConfirm} disabled={!createFolderName.trim()}>
                 <Text style={styles.modalButtonText}>Stwórz</Text>
               </TouchableOpacity>
             </View>
@@ -315,40 +292,18 @@ export default function SelectFolderScreen() {
       </Modal>
 
       {/* Modal zmiany nazwy */}
-      <Modal
-        visible={renameModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setRenameModalVisible(false)}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
+      <Modal visible={renameModalVisible} transparent animationType="fade" onRequestClose={() => setRenameModalVisible(false)}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Zmień nazwę</Text>
-                <TouchableOpacity
-                  style={styles.modalCloseButton}
-                  onPress={() => setRenameModalVisible(false)}
-                >
+                <TouchableOpacity style={styles.modalCloseButton} onPress={() => setRenameModalVisible(false)}>
                   <SvgXml xml={closeIcon} width={24} height={24} />
                 </TouchableOpacity>
               </View>
-              <TextInput
-                style={styles.modalInput}
-                value={newFolderName}
-                onChangeText={setNewFolderName}
-                placeholder="Wpisz..."
-                placeholderTextColor="#9D9D9D"
-                autoFocus
-              />
-              <TouchableOpacity
-                style={[styles.modalButton, newFolderName.trim() && newFolderName.trim() !== selectedFolder?.name ? styles.modalButtonActive : styles.modalButtonInactive]}
-                onPress={handleRenameConfirm}
-                disabled={!newFolderName.trim() || newFolderName.trim() === selectedFolder?.name}
-              >
+              <TextInput style={styles.modalInput} value={newFolderName} onChangeText={setNewFolderName} placeholder="Wpisz..." placeholderTextColor="#9D9D9D" autoFocus />
+              <TouchableOpacity style={[styles.modalButton, newFolderName.trim() && newFolderName.trim() !== selectedFolder?.name ? styles.modalButtonActive : styles.modalButtonInactive]} onPress={handleRenameConfirm} disabled={!newFolderName.trim() || newFolderName.trim() === selectedFolder?.name}>
                 <Text style={styles.modalButtonText}>Zapisz</Text>
               </TouchableOpacity>
             </View>
@@ -361,43 +316,20 @@ export default function SelectFolderScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFAF6" },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingTop: s(60),
-    paddingHorizontal: s(20),
-    gap: s(8),
-  },
+  header: { flexDirection: "row", alignItems: "center", paddingTop: s(60), paddingHorizontal: s(20), gap: s(8) },
   backButton: { width: s(24), height: s(24), justifyContent: "center", alignItems: "center" },
-  title: { fontSize: fs(24), fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: fs(32) },
+  title: { fontSize: fs(24), fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: fs(32), flexShrink: 1 },
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: s(20), paddingTop: s(48), paddingBottom: s(40) },
-  createButton: {
-    flexDirection: "row",
-    height: s(50),
-    borderRadius: s(30),
-    borderWidth: 2,
-    borderColor: "#A37D5D",
-    borderStyle: "dashed",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: s(8),
-    marginBottom: s(16),
-  },
+  createButton: { flexDirection: "row", height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#A37D5D", borderStyle: "dashed", alignItems: "center", justifyContent: "center", gap: s(8), marginBottom: s(16) },
   createButtonText: { color: "#A37D5D", fontSize: fs(16), fontWeight: "700", fontFamily: "Inter", lineHeight: fs(24) },
   grid: { gap: s(19) },
   row: { flexDirection: "row", gap: s(19) },
-  folderCard: {
-    width: s(167), height: s(167), borderRadius: s(30),
-    backgroundColor: "rgba(163, 125, 93, 0.20)",
-    justifyContent: "center", alignItems: "center",
-    position: "relative",
-  },
+  folderCard: { width: s(167), height: s(167), borderRadius: s(30), backgroundColor: "rgba(163, 125, 93, 0.20)", justifyContent: "center", alignItems: "center", position: "relative" },
   folderCardSelected: { backgroundColor: "rgba(163, 125, 93, 0.50)" },
   checkIcon: { position: "absolute", top: s(16), right: s(16) },
   folderCardEmpty: { width: s(167), height: s(167) },
   folderName: { color: "#A37D5D", fontSize: fs(16), fontWeight: "700", fontFamily: "Inter", lineHeight: fs(24), textAlign: "center" },
-
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalBox: { backgroundColor: "#EDE1D7", borderRadius: s(30), padding: s(24), width: s(353), alignItems: "center", gap: s(12) },
   modalHeader: { flexDirection: "row", justifyContent: "center", alignItems: "center", width: "100%", position: "relative" },
@@ -420,20 +352,6 @@ const styles = StyleSheet.create({
   deleteModalButtonSafeText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
   deleteModalButtonDanger: { width: s(152), height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
   deleteModalButtonDangerText: { color: "#E05744", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
-  toast: {
-    position: "absolute",
-    bottom: s(40),
-    alignSelf: "center",
-    backgroundColor: "#202C39",
-    paddingHorizontal: s(24),
-    paddingVertical: s(12),
-    borderRadius: s(30),
-    zIndex: 100,
-  },
-  toastText: {
-    color: "#FFFAF6",
-    fontSize: fs(16),
-    fontFamily: "Inter",
-    fontWeight: "400",
-  },
-});
+  toast: { position: "absolute", bottom: s(40), alignSelf: "center", backgroundColor: "#202C39", paddingHorizontal: s(24), paddingVertical: s(12), borderRadius: s(30), zIndex: 100 },
+  toastText: { color: "#FFFAF6", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+});б
