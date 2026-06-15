@@ -251,7 +251,7 @@ assets/
 
 - **Tworzenie stylizacji (outfits)** — wybór ubrań z folderów, OpenAI układa je w moodboard (klasyfikuje każdą rzecz jako: góra / środek / dół / akcent), zapis i podgląd
 <div align="center">
-  <img width="250" alt="IMAGE 2026-06-15 14:46:34" src="https://github.com/user-attachments/assets/10ab68bb-7afe-4f47-bbc4-69912d684e38" />
+  <img width="250" alt="IMAGE 2026-06-15 14:48:35" src="https://github.com/user-attachments/assets/ae249fae-19d3-4eb0-8dc2-d831c33fe7e2" />
   <img width="250" alt="IMAGE 2026-06-15 14:37:42" src="https://github.com/user-attachments/assets/12386f69-323b-4605-a5d9-aa07ee31133b" />
   <img width="250" alt="IMAGE 2026-06-15 14:30:14" src="https://github.com/user-attachments/assets/8a51a044-b269-4bed-8a54-c014d88e300c" />
 </div>
