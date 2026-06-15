@@ -2,7 +2,7 @@
 
 Aplikacja mobilna zbudowana w **React Native + Expo**, która pozwala użytkownikowi zarządzać swoją garderobą. Użytkownik może fotografować ubrania, automatycznie usuwać tło ze zdjęć, organizować ubrania w foldery, oznaczać ulubione oraz tworzyć stylizacje z pomocą AI.
 
-<!-- SCREENSHOT: ekran główny aplikacji z folderami ubrań -->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:23:45" src="https://github.com/user-attachments/assets/683130a0-4f34-40af-9569-eaa90600bd01" />
 
 ---
 
@@ -149,7 +149,6 @@ Budowanie odbywa się w chmurze i zajmuje około 10-15 minut. Po zakończeniu w 
 2. Pobierz plik `.ipa` i zainstaluj przez Xcode lub Apple Configurator 2
 3. Alternatywnie — uruchom na symulatorze iOS na Macu
 
-<!-- SCREENSHOT: zainstalowana aplikacja Szafa na telefonie z Androidem -->
 ---
 
 ## Zmienne środowiskowe
@@ -226,37 +225,53 @@ assets/
 
 - **Rejestracja i logowanie** — e-mail + hasło
 
-<!-- SCREENSHOT: ekran logowania -->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:25:13" src="https://github.com/user-attachments/assets/633b9005-bf45-4f27-921d-42670fc4a144" />
+
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:25:08" src="https://github.com/user-attachments/assets/02537e7a-ff71-4a08-98f0-7dba114aaf9c" />
+
 
 - **Dodawanie ubrań** — zdjęcie aparatem lub wybór z galerii
 
-<!-- SCREENSHOT: ekran kamery-->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:25:47" src="https://github.com/user-attachments/assets/726fc8a9-c8d3-4800-8f0e-e96f6aa7353c" />
+
 
 - **Automatyczne usuwanie tła** — integracja z remove.bg API; wynik wyświetlany na podglądzie przed zapisem
 
-<!-- SCREENSHOT: usuniętego tła-->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:26:11" src="https://github.com/user-attachments/assets/63f816e8-4740-4964-8097-cd21474095ed" />
+
 
 - **Organizacja w foldery** — tworzenie, zmiana nazwy, usuwanie folderów
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:27:34" src="https://github.com/user-attachments/assets/500eca44-bb11-4f03-8958-29308ab0fcac" />
 
-<!-- SCREENSHOTy: foldery oraz przyciski usunięcia-->
 
 - **Ulubione** — dedykowany folder na wybrane rzeczy
 
-<!-- SCREENSHOT: ulubione-->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:27:51" src="https://github.com/user-attachments/assets/3ce2e096-97be-42f4-b939-1d5135d185ea" />
+
 
 - **Tworzenie stylizacji (outfits)** — wybór ubrań z folderów, OpenAI układa je w moodboard (klasyfikuje każdą rzecz jako: góra / środek / dół / akcent), zapis i podgląd
 
-<!-- SCREENSHOT: ekran tworzenia stylizacji z moodboardem -->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:30:25" src="https://github.com/user-attachments/assets/9685d253-20a6-4a4c-baa6-61e293d4f5fa" />
+
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:30:20" src="https://github.com/user-attachments/assets/c5eaf793-ab92-445e-9a1c-4ac52aeaab00" />
+
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:30:14" src="https://github.com/user-attachments/assets/8a51a044-b269-4bed-8a54-c014d88e300c" />
+
+
 
 - **Przeglądanie stylizacji** — folder zapisanych stylizacje, pełnoekranowy podgląd po kliknięciu, usuwanie on Long Press
 
-<!-- SCREENSHOT: ekran Moje Stylizacje -->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:28:47" src="https://github.com/user-attachments/assets/c7b5be38-5a5d-45eb-b5b2-cf2427218086" />
+
 
 - **Profil użytkownika** — edycja wyświetlanej nazwy uytkownika, statystyki (liczba folderów, ubrań, stylizacji)
 
-<!-- SCREENSHOT: ekran profilu ze statystykami -->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:28:59" src="https://github.com/user-attachments/assets/afaecd94-1f97-4b1d-8d58-5ce6d74fd313" />
+
 
 - **Tryb offline** — przeglądanie folderów i zdjęć z cache gdy brak połączenia
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:29:52" src="https://github.com/user-attachments/assets/4e9ab155-4507-48be-b31a-970038311889" />
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:29:43" src="https://github.com/user-attachments/assets/0027278e-0394-40e0-aedd-db9309c17b66" />
 
 ---
 
@@ -376,7 +391,8 @@ Aplikacja używa **AsyncStorage** (`services/cache.ts`) jako lokalnego cache:
 - Po pobraniu zdjęć z folderu dane są zapisywane lokalnie: `saveToCache(FOLDER_IMAGES_CACHE_KEY(folderId), data)`
 - Przy braku połączenia dane są odczytywane z cache i wyświetlane z banerem: _„Brak połączenia — dane z ostatniej sesji"_
 - Ekran stylizacji przy braku połączenia pokazuje odpowiedni komunikat
-<!-- SCREENSHOT: ekran folderu ze zdjęciami bez połączenia-->
+<img width="591" height="1280" alt="IMAGE 2026-06-15 14:30:55" src="https://github.com/user-attachments/assets/93ee4604-046f-4ee4-8c9d-77f865d82865" />
+
 
 
 ---
