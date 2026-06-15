@@ -29,7 +29,6 @@ export default function RegisterScreen() {
   const [emailOk, setEmailOk] = useState(false);
   const [passwordOk, setPasswordOk] = useState(false);
   const [confirmOk, setConfirmOk] = useState(false);
-  // флаги — пользователь сам печатал (не автозаполнение iOS)
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [confirmTouched, setConfirmTouched] = useState(false);
 
@@ -41,7 +40,6 @@ export default function RegisterScreen() {
   };
 
   const validatePassword = (val: string, prev: string = password) => {
-    // touched только если пользователь печатал сам (изменение на 1 символ)
     const isManualInput = Math.abs(val.length - prev.length) === 1;
     if (isManualInput) setPasswordTouched(true);
     setPassword(val);
@@ -110,7 +108,6 @@ export default function RegisterScreen() {
   };
 
   const passwordHasError = !!passwordError;
-  // галочка только если пользователь сам печатал
   const showPasswordCheck = passwordOk && !passwordHasError && passwordTouched;
   const showConfirmCheck = confirmOk && !passwordHasError && confirmTouched;
 
@@ -125,7 +122,7 @@ export default function RegisterScreen() {
       >
         <Text style={styles.title}>Rejestracja</Text>
 
-        {/* Email */}
+        {}
         <View style={styles.inputWrapper}>
           <View style={styles.inputRow}>
             <TextInput
@@ -152,7 +149,7 @@ export default function RegisterScreen() {
           {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
         </View>
 
-        {/* Hasło */}
+        {}
         <View style={styles.inputWrapper}>
           <View style={styles.inputRow}>
             <TextInput
@@ -177,7 +174,7 @@ export default function RegisterScreen() {
           </View>
         </View>
 
-        {/* Powtórz hasło */}
+        {}
         <View style={styles.inputWrapper}>
           <View style={styles.inputRow}>
             <TextInput
@@ -203,12 +200,12 @@ export default function RegisterScreen() {
           {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
         </View>
 
-        {/* Kontynuuj */}
+        {}
         <TouchableOpacity style={styles.buttonPrimary} onPress={handleRegister}>
           <Text style={styles.buttonPrimaryText}>Kontynuuj</Text>
         </TouchableOpacity>
 
-        {/* Masz już konto */}
+        {}
         <TouchableOpacity
           style={styles.buttonSecondary}
           onPress={() => router.push("/login")}

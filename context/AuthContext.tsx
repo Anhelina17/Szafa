@@ -24,22 +24,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Pobieramy sesję lokalnie przy starcie — działa offline
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
-    // Nasłuchujemy zmian sesji — wylogowanie, wygaśnięcie tokenu
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);
-        if (!session) {
-          router.replace("/login");
-        }
       }
     );
 
