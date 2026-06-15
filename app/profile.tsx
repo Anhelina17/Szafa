@@ -289,8 +289,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
-    position: "absolute",
-    bottom: s(116),
+    marginBottom: s(116),
   },
   logoutText: {
     fontSize: fs(16),

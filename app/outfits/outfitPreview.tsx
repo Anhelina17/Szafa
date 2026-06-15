@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
   },
   autoGridImage: {
     width: "50%",
-    height: 180,
+    height: s(180),
     backgroundColor: "#FFFAF6",
   },
   saveButton: {
