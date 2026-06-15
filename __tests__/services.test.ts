@@ -131,20 +131,8 @@ describe("Cache Service", () => {
     expect(result).toBeNull();
   });
 
-  test("TEST 4 — FOLDERS_CACHE_KEY generuje unikalne klucze per użytkownik", () => {
-    const key1 = FOLDERS_CACHE_KEY("user-1");
-    const key2 = FOLDERS_CACHE_KEY("user-2");
-
-    expect(key1).not.toBe(key2);
-    expect(key1).toContain("user-1");
-    expect(key2).toContain("user-2");
-  });
-
-  test("TEST 5 — FOLDER_IMAGES_CACHE_KEY zawiera ID folderu", () => {
-    const key = FOLDER_IMAGES_CACHE_KEY("folder-xyz");
-
-    expect(key).toContain("folder-xyz");
-  });test("TEST 26 — loadFromCache zwraca null gdy AsyncStorage rzuci wyjątek", async () => {
+  
+  test("TEST 4 — loadFromCache zwraca null gdy AsyncStorage rzuci wyjątek", async () => {
   (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(
     new Error("Storage error")
   );
@@ -154,7 +142,7 @@ describe("Cache Service", () => {
   expect(result).toBeNull();
 });
 
-test("TEST 27 — saveToCache nie rzuca wyjątku gdy AsyncStorage.setItem zawiedzie", async () => {
+test("TEST 5 — saveToCache nie rzuca wyjątku gdy AsyncStorage.setItem zawiedzie", async () => {
   (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(
     new Error("Storage error")
   );
@@ -163,17 +151,33 @@ test("TEST 27 — saveToCache nie rzuca wyjątku gdy AsyncStorage.setItem zawied
     saveToCache("key", { test: true })
   ).resolves.toBeUndefined();
 });
+
+test("TEST 6 — FOLDERS_CACHE_KEY generuje unikalne klucze per użytkownik", () => {
+    const key1 = FOLDERS_CACHE_KEY("user-1");
+    const key2 = FOLDERS_CACHE_KEY("user-2");
+
+    expect(key1).not.toBe(key2);
+    expect(key1).toContain("user-1");
+    expect(key2).toContain("user-2");
+  });
+
+  test("TEST 7 — FOLDER_IMAGES_CACHE_KEY zawiera ID folderu", () => {
+    const key = FOLDER_IMAGES_CACHE_KEY("folder-xyz");
+
+    expect(key).toContain("folder-xyz");
+  });
+
 });
 
 // 2. Scale Utils — przeliczanie rozmiarów i fontów
 describe("Scale Utils", () => {
-  test("TEST 6 — s() nie skaluje przy szerokości bazowej 393px (scale = 1)", () => {
+  test("TEST 8 — s() nie skaluje przy szerokości bazowej 393px (scale = 1)", () => {
     expect(s(16)).toBe(16);
     expect(s(0)).toBe(0);
     expect(s(100)).toBe(100);
   });
 
-  test("TEST 7 — fs() zwraca dodatnią liczbę i nie zwraca NaN", () => {
+  test("TEST 9 — fs() zwraca dodatnią liczbę i nie zwraca NaN", () => {
     const result = fs(14);
     expect(typeof result).toBe("number");
     expect(result).toBeGreaterThan(0);
@@ -185,13 +189,13 @@ describe("Scale Utils", () => {
 describe("Folders Service", () => {
   beforeEach(() => jest.clearAllMocks());
 
-  test("TEST 8 — getFolders rzuca błąd gdy użytkownik nie jest zalogowany", async () => {
+  test("TEST 10 — getFolders rzuca błąd gdy użytkownik nie jest zalogowany", async () => {
     (supabase.auth.getUser as jest.Mock).mockResolvedValueOnce({ data: { user: null } });
 
     await expect(getFolders()).rejects.toThrow("Brak użytkownika");
   });
 
-  test("TEST 9 — createFolder trim()-uje nazwę przed zapisem do bazy", async () => {
+  test("TEST 11 — createFolder trim()-uje nazwę przed zapisem do bazy", async () => {
     (supabase.auth.getUser as jest.Mock).mockResolvedValueOnce({ data: { user: MOCK_USER } });
 
     const insertMock = jest.fn().mockResolvedValue({ error: null });
@@ -204,7 +208,23 @@ describe("Folders Service", () => {
     );
   });
 
-  test("TEST 10 — renameFolder wysyła nową nazwę do właściwego wiersza", async () => {
+  test("TEST 12 — createFolder rzuca błąd gdy insert zwróci error", async () => {
+  (supabase.auth.getUser as jest.Mock).mockResolvedValueOnce({
+    data: { user: MOCK_USER },
+  });
+
+  const dbError = new Error("Insert failed");
+
+  (supabase.from as jest.Mock).mockReturnValue({
+    insert: jest.fn().mockResolvedValue({
+      error: dbError,
+    }),
+  });
+
+  await expect(createFolder("Bluzy")).rejects.toThrow("Insert failed");
+});
+
+  test("TEST 13 — renameFolder wysyła nową nazwę do właściwego wiersza", async () => {
     const updateMock = jest.fn().mockReturnThis();
     const eqMock = jest.fn().mockResolvedValue({ error: null });
     (supabase.from as jest.Mock).mockReturnValue({ update: updateMock, eq: eqMock });
@@ -216,7 +236,27 @@ describe("Folders Service", () => {
     expect(eqMock).toHaveBeenCalledWith("id", "folder-99");
   });
 
-  test("TEST 11 — deleteFolder usuwa najpierw powiązania (image_folders), potem folder", async () => {
+  test("TEST 14 — renameFolder rzuca błąd gdy update zwróci error", async () => {
+  const dbError = new Error("Update failed");
+
+  const eqMock = jest.fn().mockResolvedValue({
+    error: dbError,
+  });
+
+  const updateMock = jest.fn(() => ({
+    eq: eqMock,
+  }));
+
+  (supabase.from as jest.Mock).mockReturnValue({
+    update: updateMock,
+  });
+
+  await expect(
+    renameFolder("folder-1", "Nowa nazwa")
+  ).rejects.toThrow("Update failed");
+});
+
+  test("TEST 15 — deleteFolder usuwa najpierw powiązania (image_folders), potem folder", async () => {
     const callOrder: string[] = [];
 
     const makeDelete = (table: string) => {
@@ -237,41 +277,7 @@ describe("Folders Service", () => {
     expect(callOrder[0]).toBe("image_folders");
     expect(callOrder[1]).toBe("folders");
   });
-  test("TEST 28 — createFolder rzuca błąd gdy insert zwróci error", async () => {
-  (supabase.auth.getUser as jest.Mock).mockResolvedValueOnce({
-    data: { user: MOCK_USER },
-  });
-
-  const dbError = new Error("Insert failed");
-
-  (supabase.from as jest.Mock).mockReturnValue({
-    insert: jest.fn().mockResolvedValue({
-      error: dbError,
-    }),
-  });
-
-  await expect(createFolder("Bluzy")).rejects.toThrow("Insert failed");
-});
-
-test("TEST 29 — renameFolder rzuca błąd gdy update zwróci error", async () => {
-  const dbError = new Error("Update failed");
-
-  const eqMock = jest.fn().mockResolvedValue({
-    error: dbError,
-  });
-
-  const updateMock = jest.fn(() => ({
-    eq: eqMock,
-  }));
-
-  (supabase.from as jest.Mock).mockReturnValue({
-    update: updateMock,
-  });
-
-  await expect(
-    renameFolder("folder-1", "Nowa nazwa")
-  ).rejects.toThrow("Update failed");
-});
+  
 });
 
 // 4. Images Service — upload, ulubione, usuwanie
@@ -561,6 +567,7 @@ test("TEST 34 — deleteOutfit rzuca błąd gdy usuwanie się nie powiedzie", as
 });
 
 // 6. Background Removal Service — integracja z remove.bg
+// ══════════════════════════════════════════════════════════════════════════════
 describe("Background Removal Service", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -618,6 +625,7 @@ describe("Background Removal Service", () => {
 
     const result = await removeBackground("file:///photo.jpg");
 
+    // FileReader.readAsDataURL jest zamockowany — powinien zwrócić data URI
     expect(typeof result).toBe("string");
     expect(result).toMatch(/^data:/);
   });

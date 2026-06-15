@@ -57,3 +57,5 @@ pids
 .env.*
 !.env.example
 
+# Test coverage
+coverage/
