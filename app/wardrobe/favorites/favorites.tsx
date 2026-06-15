@@ -13,6 +13,7 @@ import {
 import { SvgXml } from "react-native-svg";
 import TabBar from "../../../components/TabBar";
 import { deleteImage, getFavoriteImages, toggleFavorite } from "../../../services/images";
+import { fs, s } from "../../../utils/scale";
 
 const backIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
   <path d="M16.0603 2.45407C16.3415 2.73536 16.4995 3.11683 16.4995 3.51457C16.4995 3.91232 16.3415 4.29378 16.0603 4.57507L8.63533 12.0001L16.0603 19.4251C16.3336 19.708 16.4848 20.0869 16.4813 20.4802C16.4779 20.8735 16.3202 21.2497 16.0421 21.5278C15.7639 21.8059 15.3877 21.9637 14.9944 21.9671C14.6011 21.9705 14.2222 21.8193 13.9393 21.5461L5.45383 13.0606C5.17262 12.7793 5.01465 12.3978 5.01465 12.0001C5.01465 11.6023 5.17262 11.2209 5.45383 10.9396L13.9393 2.45407C14.2206 2.17287 14.6021 2.01489 14.9998 2.01489C15.3976 2.01489 15.779 2.17287 16.0603 2.45407Z" fill="#202C39"/>
@@ -93,7 +94,7 @@ export default function FavoritesScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <SvgXml xml={backIcon} width={24} height={24} />
+          <SvgXml xml={backIcon} width={s(24)} height={s(24)} />
         </TouchableOpacity>
         <Text style={styles.title}>Ulubione</Text>
       </View>
@@ -108,23 +109,12 @@ export default function FavoritesScreen() {
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={styles.row}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: s(120) }}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.imageContainer}
-              onLongPress={() => handleLongPress(item)}
-              delayLongPress={500}
-            >
-              <Image
-                source={{ uri: item.image_url }}
-                style={styles.image}
-                resizeMode="contain"
-              />
-              <TouchableOpacity
-                style={styles.heartButton}
-                onPress={() => handleToggleFavorite(item)}
-              >
-                <SvgXml xml={heartFilledIcon} width={24} height={24} />
+            <TouchableOpacity style={styles.imageContainer} onLongPress={() => handleLongPress(item)} delayLongPress={500}>
+              <Image source={{ uri: item.image_url }} style={styles.image} resizeMode="contain" />
+              <TouchableOpacity style={styles.heartButton} onPress={() => handleToggleFavorite(item)}>
+                <SvgXml xml={heartFilledIcon} width={s(24)} height={s(24)} />
               </TouchableOpacity>
             </TouchableOpacity>
           )}
@@ -183,26 +173,26 @@ export default function FavoritesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFAF6", paddingHorizontal: 20, paddingTop: 64 },
+  container: { flex: 1, backgroundColor: "#FFFAF6", paddingHorizontal: s(20), paddingTop: s(64) },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingBottom: 80 },
-  emptyText: { color: "#A37D5D", fontSize: 16, fontFamily: "Inter", fontWeight: "400", lineHeight: 24, textAlign: "center" },
-  header: { flexDirection: "row", alignItems: "center", marginBottom: 24 },
-  backButton: { marginRight: 8 },
-  title: { fontSize: 24, fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: 32 },
-  row: { justifyContent: "space-between", marginBottom: 19 },
-  imageContainer: { width: "47%", height: 230, borderRadius: 30, backgroundColor: "#FFFAF6", borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingBottom: s(80) },
+  emptyText: { color: "#A37D5D", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400", lineHeight: fs(24), textAlign: "center" },
+  header: { flexDirection: "row", alignItems: "center", marginBottom: s(24) },
+  backButton: { marginRight: s(8) },
+  title: { fontSize: fs(24), fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: fs(32) },
+  row: { justifyContent: "space-between", marginBottom: s(19) },
+  imageContainer: { width: "47%", height: s(230), borderRadius: s(30), backgroundColor: "#FFFAF6", borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
   image: { width: "100%", height: "100%" },
-  heartButton: { position: "absolute", top: 12, right: 12 },
+  heartButton: { position: "absolute", top: s(12), right: s(12) },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 12 },
-  modalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: 24 },
-  modalButtons: { flexDirection: "row", gap: 12 },
-  modalButtonSafe: { width: 152, height: 50, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
-  modalButtonSafeText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
-  modalButtonDanger: { width: 152, height: 50, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
-  modalButtonDangerText: { color: "#E05744", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
-  modalButtonDangerFull: { width: 305, height: 48, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
-  modalButtonSafeFull: { width: 305, height: 48, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
-  modalButtonSafeFullText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalBox: { backgroundColor: "#EDE1D7", borderRadius: s(30), padding: s(24), width: s(353), alignItems: "center", gap: s(12) },
+  modalTitle: { fontSize: fs(16), fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: fs(24) },
+  modalButtons: { flexDirection: "row", gap: s(12) },
+  modalButtonSafe: { width: s(152), height: s(50), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDanger: { width: s(152), height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonDangerText: { color: "#E05744", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDangerFull: { width: s(305), height: s(48), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeFull: { width: s(305), height: s(48), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeFullText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
 });

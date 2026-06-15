@@ -14,6 +14,7 @@ import {
 import { SvgXml } from "react-native-svg";
 import { getFolders } from "../../services/folders";
 import { getFavoriteImages, getImagesByFolder } from "../../services/images";
+import { fs, s } from "../../utils/scale";
 
 type ImageItem = {
   id: string;
@@ -59,9 +60,7 @@ export default function SelectImagesScreen() {
   const [showBar, setShowBar] = useState(false);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
 
-  useEffect(() => {
-    loadFolders();
-  }, []);
+  useEffect(() => { loadFolders(); }, []);
 
   const loadFolders = async () => {
     try {
@@ -103,9 +102,7 @@ export default function SelectImagesScreen() {
   const toggleImage = useCallback((image: ImageItem) => {
     setSelectedImages((prev) => {
       const isAlreadySelected = prev.some((img) => img.id === image.id);
-      const newSelected = isAlreadySelected
-        ? prev.filter((img) => img.id !== image.id)
-        : [...prev, image];
+      const newSelected = isAlreadySelected ? prev.filter((img) => img.id !== image.id) : [...prev, image];
       setShowBar(newSelected.length > 0);
       return newSelected;
     });
@@ -118,27 +115,15 @@ export default function SelectImagesScreen() {
 
   const handleNext = () => {
     if (selectedImages.length === 0) return;
-    router.push({
-      pathname: "/outfits/outfitPreview",
-      params: { selectedImages: JSON.stringify(selectedImages) },
-    });
+    router.push({ pathname: "/outfits/outfitPreview", params: { selectedImages: JSON.stringify(selectedImages) } });
   };
 
   const handleBackPress = () => {
-    if (selectedImages.length > 0) {
-      setCancelModalVisible(true);
-    } else {
-      router.back();
-    }
+    if (selectedImages.length > 0) { setCancelModalVisible(true); } else { router.back(); }
   };
 
   const handleCancel = () => {
-    if (selectedImages.length > 0) {
-      setCancelModalVisible(true);
-    } else {
-      setShowBar(false);
-      setSelectedImages([]);
-    }
+    if (selectedImages.length > 0) { setCancelModalVisible(true); } else { setShowBar(false); setSelectedImages([]); }
   };
 
   const handleCancelConfirm = () => {
@@ -164,15 +149,13 @@ export default function SelectImagesScreen() {
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={handleBackPress}>
-            <SvgXml xml={backIcon} width={24} height={24} />
+            <SvgXml xml={backIcon} width={s(24)} height={s(24)} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Stwórz stylizację</Text>
         </View>
 
         {isLoadingFolders ? (
-          <View style={styles.center}>
-            <ActivityIndicator size="large" color="#A37D5D" />
-          </View>
+          <View style={styles.center}><ActivityIndicator size="large" color="#A37D5D" /></View>
         ) : (
           <FlatList
             data={[{ id: 'ulubione', name: 'Ulubione', isSpecial: true }, ...folders] as any[]}
@@ -180,60 +163,34 @@ export default function SelectImagesScreen() {
             numColumns={2}
             columnWrapperStyle={styles.row}
             style={{ flex: 1 }}
-            contentContainerStyle={[
-              styles.listContent,
-              showBar && { paddingBottom: 180 },
-            ]}
+            contentContainerStyle={[styles.listContent, showBar && { paddingBottom: s(180) }]}
             renderItem={({ item }: { item: any }) => {
               if (item.isSpecial) {
                 return (
-                  <TouchableOpacity
-                    style={styles.folder}
-                    onPress={() => openFolder({ id: 'favorites', name: 'Ulubione' })}
-                  >
-                    <SvgXml xml={favoritesIcon} width={40} height={40} />
+                  <TouchableOpacity style={styles.folder} onPress={() => openFolder({ id: 'favorites', name: 'Ulubione' })}>
+                    <SvgXml xml={favoritesIcon} width={s(40)} height={s(40)} />
                     <Text style={styles.folderText}>Ulubione</Text>
                   </TouchableOpacity>
                 );
               }
               return (
-                <TouchableOpacity
-                  style={styles.folder}
-                  onPress={() => openFolder(item)}
-                >
+                <TouchableOpacity style={styles.folder} onPress={() => openFolder(item)}>
                   <Text style={styles.folderText}>{item.name}</Text>
                 </TouchableOpacity>
               );
             }}
-            ListEmptyComponent={
-              <View style={styles.center}>
-                <Text style={styles.emptyText}>Brak folderów</Text>
-              </View>
-            }
+            ListEmptyComponent={<View style={styles.center}><Text style={styles.emptyText}>Brak folderów</Text></View>}
           />
         )}
 
         {showBar && (
-          <SelectedBar
-            selectedImages={selectedImages}
-            onRemove={handleRemove}
-            onNext={handleNext}
-            onCancel={handleCancel}
-            count={selectedImages.length}
-          />
+          <SelectedBar selectedImages={selectedImages} onRemove={handleRemove} onNext={handleNext} onCancel={handleCancel} count={selectedImages.length} />
         )}
 
-        <Modal
-          visible={cancelModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setCancelModalVisible(false)}
-        >
+        <Modal visible={cancelModalVisible} transparent animationType="fade" onRequestClose={() => setCancelModalVisible(false)}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalBox}>
-              <Text style={styles.modalTitle}>
-                Czy na pewno chcesz przerwać tworzenie stylizacji?
-              </Text>
+              <Text style={styles.modalTitle}>Czy na pewno chcesz przerwać tworzenie stylizacji?</Text>
               <View style={styles.modalButtons}>
                 <TouchableOpacity style={styles.modalButtonSafe} onPress={() => setCancelModalVisible(false)}>
                   <Text style={styles.modalButtonSafeText}>Zostaw</Text>
@@ -253,15 +210,13 @@ export default function SelectImagesScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={goBackToFolders}>
-          <SvgXml xml={backIcon} width={24} height={24} />
+          <SvgXml xml={backIcon} width={s(24)} height={s(24)} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{activeFolderName}</Text>
       </View>
 
       {isLoadingImages ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#A37D5D" />
-        </View>
+        <View style={styles.center}><ActivityIndicator size="large" color="#A37D5D" /></View>
       ) : (
         <FlatList
           data={folderImages}
@@ -269,59 +224,27 @@ export default function SelectImagesScreen() {
           numColumns={2}
           columnWrapperStyle={styles.row}
           style={{ flex: 1 }}
-          contentContainerStyle={[
-            styles.listContent,
-            showBar && { paddingBottom: 180 },
-            folderImages.length === 0 && { flex: 1, paddingBottom: 80 },
-          ]}
+          contentContainerStyle={[styles.listContent, showBar && { paddingBottom: s(180) }, folderImages.length === 0 && { flex: 1, paddingBottom: s(80) }]}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.imageContainer}
-              onPress={() => toggleImage(item)}
-            >
-              <Image
-                source={{ uri: item.image_url }}
-                style={styles.image}
-                resizeMode="contain"
-              />
+            <TouchableOpacity style={styles.imageContainer} onPress={() => toggleImage(item)}>
+              <Image source={{ uri: item.image_url }} style={styles.image} resizeMode="contain" />
               <View style={styles.checkbox}>
-                <SvgXml
-                  xml={isSelected(item.id) ? circleCheckedIcon : circleIcon}
-                  width={24}
-                  height={24}
-                />
+                <SvgXml xml={isSelected(item.id) ? circleCheckedIcon : circleIcon} width={s(24)} height={s(24)} />
               </View>
             </TouchableOpacity>
           )}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Tutaj jeszcze nic nie ma</Text>
-            </View>
-          }
+          ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>Tutaj jeszcze nic nie ma</Text></View>}
         />
       )}
 
       {showBar && (
-        <SelectedBar
-          selectedImages={selectedImages}
-          onRemove={handleRemove}
-          onNext={handleNext}
-          onCancel={handleCancel}
-          count={selectedImages.length}
-        />
+        <SelectedBar selectedImages={selectedImages} onRemove={handleRemove} onNext={handleNext} onCancel={handleCancel} count={selectedImages.length} />
       )}
 
-      <Modal
-        visible={cancelModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setCancelModalVisible(false)}
-      >
+      <Modal visible={cancelModalVisible} transparent animationType="fade" onRequestClose={() => setCancelModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>
-              Czy na pewno chcesz przerwać tworzenie stylizacji?
-            </Text>
+            <Text style={styles.modalTitle}>Czy na pewno chcesz przerwać tworzenie stylizacji?</Text>
             <View style={styles.modalButtons}>
               <TouchableOpacity style={styles.modalButtonSafe} onPress={() => setCancelModalVisible(false)}>
                 <Text style={styles.modalButtonSafeText}>Zostaw</Text>
@@ -337,13 +260,7 @@ export default function SelectImagesScreen() {
   );
 }
 
-function SelectedBar({
-  selectedImages,
-  onRemove,
-  onNext,
-  onCancel,
-  count,
-}: {
+function SelectedBar({ selectedImages, onRemove, onNext, onCancel, count }: {
   selectedImages: ImageItem[];
   onRemove: (id: string) => void;
   onNext: () => void;
@@ -352,20 +269,12 @@ function SelectedBar({
 }) {
   return (
     <View style={styles.selectedBar}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.selectedScroll}
-      >
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectedScroll}>
         {selectedImages.map((img) => (
           <View key={img.id} style={styles.selectedThumb}>
-            <Image
-              source={{ uri: img.image_url }}
-              style={styles.selectedThumbImage}
-              resizeMode="contain"
-            />
+            <Image source={{ uri: img.image_url }} style={styles.selectedThumbImage} resizeMode="contain" />
             <TouchableOpacity style={styles.removeButton} onPress={() => onRemove(img.id)}>
-              <SvgXml xml={closeIcon} width={16} height={16} />
+              <SvgXml xml={closeIcon} width={s(16)} height={s(16)} />
             </TouchableOpacity>
           </View>
         ))}
@@ -384,34 +293,34 @@ function SelectedBar({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFAF6" },
-  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 64, paddingBottom: 16, gap: 8 },
-  headerTitle: { fontSize: 24, fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: 32 },
+  header: { flexDirection: "row", alignItems: "center", paddingHorizontal: s(20), paddingTop: s(64), paddingBottom: s(16), gap: s(8) },
+  headerTitle: { fontSize: fs(24), fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: fs(32) },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingBottom: 80 },
-  listContent: { paddingHorizontal: 20, paddingTop: 8 },
-  row: { justifyContent: "space-between", marginBottom: 19 },
-  folder: { width: "47%", aspectRatio: 1, borderRadius: 30, backgroundColor: "rgba(163, 125, 93, 0.2)", alignItems: "center", justifyContent: "center" },
-  folderText: { fontSize: 16, fontWeight: "700", color: "#A37D5D", fontFamily: "Inter", textAlign: "center" },
-  imageContainer: { width: "47%", height: 230, borderRadius: 30, backgroundColor: "#FFFAF6", borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  emptyContainer: { flex: 1, justifyContent: "center", alignItems: "center", paddingBottom: s(80) },
+  listContent: { paddingHorizontal: s(20), paddingTop: s(8) },
+  row: { justifyContent: "space-between", marginBottom: s(19) },
+  folder: { width: "47%", aspectRatio: 1, borderRadius: s(30), backgroundColor: "rgba(163, 125, 93, 0.2)", alignItems: "center", justifyContent: "center" },
+  folderText: { fontSize: fs(16), fontWeight: "700", color: "#A37D5D", fontFamily: "Inter", textAlign: "center" },
+  imageContainer: { width: "47%", height: s(230), borderRadius: s(30), backgroundColor: "#FFFAF6", borderWidth: 2, borderColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
   image: { width: "100%", height: "100%" },
-  checkbox: { position: "absolute", top: 12, right: 12 },
-  emptyText: { color: "#A37D5D", fontSize: 16, fontFamily: "Inter" },
-  selectedBar: { position: "absolute", bottom: 14, left: 12, right: 12, backgroundColor: "#202C39", paddingTop: 12, paddingBottom: 20, paddingHorizontal: 12, borderRadius: 30, gap: 8 },
-  selectedScroll: { flexDirection: "row", gap: 8 },
-  selectedThumb: { width: 84, height: 70, borderRadius: 18, backgroundColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  checkbox: { position: "absolute", top: s(12), right: s(12) },
+  emptyText: { color: "#A37D5D", fontSize: fs(16), fontFamily: "Inter" },
+  selectedBar: { position: "absolute", bottom: s(14), left: s(12), right: s(12), backgroundColor: "#202C39", paddingTop: s(12), paddingBottom: s(20), paddingHorizontal: s(12), borderRadius: s(30), gap: s(8) },
+  selectedScroll: { flexDirection: "row", gap: s(8) },
+  selectedThumb: { width: s(84), height: s(70), borderRadius: s(18), backgroundColor: "#EDE1D7", overflow: "hidden", alignItems: "center", justifyContent: "center" },
   selectedThumbImage: { width: "100%", height: "100%" },
-  removeButton: { position: "absolute", top: 4, right: 4 },
-  selectedBarButtons: { flexDirection: "row", gap: 8 },
-  cancelButton: { flex: 1, height: 50, borderRadius: 30, borderWidth: 2, borderColor: "#EDE1D7", justifyContent: "center", alignItems: "center" },
-  cancelButtonText: { color: "#EDE1D7", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
-  nextButton: { flex: 1, height: 50, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
-  nextButtonText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  removeButton: { position: "absolute", top: s(4), right: s(4) },
+  selectedBarButtons: { flexDirection: "row", gap: s(8) },
+  cancelButton: { flex: 1, height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#EDE1D7", justifyContent: "center", alignItems: "center" },
+  cancelButtonText: { color: "#EDE1D7", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  nextButton: { flex: 1, height: s(50), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  nextButtonText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 16 },
-  modalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: 24 },
-  modalButtons: { flexDirection: "row", gap: 12 },
-  modalButtonSafe: { width: 152, height: 50, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
-  modalButtonSafeText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
-  modalButtonDanger: { width: 152, height: 50, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
-  modalButtonDangerText: { color: "#E05744", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalBox: { backgroundColor: "#EDE1D7", borderRadius: s(30), padding: s(24), width: s(353), alignItems: "center", gap: s(16) },
+  modalTitle: { fontSize: fs(16), fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: fs(24) },
+  modalButtons: { flexDirection: "row", gap: s(12) },
+  modalButtonSafe: { width: s(152), height: s(50), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonSafeText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDanger: { width: s(152), height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonDangerText: { color: "#E05744", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
 });

@@ -19,6 +19,7 @@ import TabBar from "../../components/TabBar";
 import { useAuth } from "../../context/AuthContext";
 import { FOLDERS_CACHE_KEY, loadFromCache, saveToCache } from "../../services/cache";
 import { createFolder, deleteFolder, getFolders, renameFolder } from "../../services/folders";
+import { fs, s } from "../../utils/scale";
 
 const plusIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
   <path d="M15 28.125C22.2487 28.125 28.125 22.2487 28.125 15C28.125 7.75126 22.2487 1.875 15 1.875C7.75126 1.875 1.875 7.75126 1.875 15C1.875 22.2487 7.75126 28.125 15 28.125Z" fill="#A37D5D"/>
@@ -50,7 +51,6 @@ export default function WardrobeScreen() {
   const [newFolderName, setNewFolderName] = useState("");
   const [createFolderName, setCreateFolderName] = useState("");
 
-  // Blur overlay
   const blurOpacity = useRef(new Animated.Value(0)).current;
   const [blurVisible, setBlurVisible] = useState(false);
   const [blurMessage, setBlurMessage] = useState("");
@@ -164,7 +164,7 @@ export default function WardrobeScreen() {
 
       {!isOffline && (
         <TouchableOpacity style={styles.createButton} onPress={() => setCreateModalVisible(true)}>
-          <SvgXml xml={plusIcon} width={30} height={30} />
+          <SvgXml xml={plusIcon} width={s(30)} height={s(30)} />
           <Text style={styles.createButtonText}>Stwórz folder</Text>
         </TouchableOpacity>
       )}
@@ -174,12 +174,12 @@ export default function WardrobeScreen() {
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={styles.row}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: s(120) }}
         renderItem={({ item }: { item: any }) => {
           if (item.isSpecial) {
             return (
               <TouchableOpacity style={styles.folder} onPress={() => router.push("/wardrobe/favorites/favorites")}>
-                <SvgXml xml={favoritesIcon} width={40} height={40} />
+                <SvgXml xml={favoritesIcon} width={s(40)} height={s(40)} />
                 <Text style={styles.folderText}>Ulubione</Text>
               </TouchableOpacity>
             );
@@ -197,7 +197,6 @@ export default function WardrobeScreen() {
         }}
       />
 
-      {/* Blur overlay */}
       {blurVisible && (
         <Animated.View style={[styles.blurOverlay, { opacity: blurOpacity }]}>
           <Text style={styles.blurText}>{blurMessage}</Text>
@@ -210,7 +209,7 @@ export default function WardrobeScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>{selectedFolder?.name}</Text>
               <TouchableOpacity style={styles.modalCloseButton} onPress={() => setFolderOptionsModalVisible(false)}>
-                <SvgXml xml={closeIcon} width={24} height={24} />
+                <SvgXml xml={closeIcon} width={s(24)} height={s(24)} />
               </TouchableOpacity>
             </View>
             <Text style={styles.modalSubtitle}>Co chcesz zrobić z tym folderem?</Text>
@@ -251,7 +250,7 @@ export default function WardrobeScreen() {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Stwórz folder</Text>
                 <TouchableOpacity style={styles.modalCloseButton} onPress={() => { setCreateModalVisible(false); setCreateFolderName(""); }}>
-                  <SvgXml xml={closeIcon} width={24} height={24} />
+                  <SvgXml xml={closeIcon} width={s(24)} height={s(24)} />
                 </TouchableOpacity>
               </View>
               <TextInput style={styles.modalInput} value={createFolderName} onChangeText={setCreateFolderName} placeholder="Wpisz..." placeholderTextColor="#9D9D9D" autoFocus />
@@ -270,7 +269,7 @@ export default function WardrobeScreen() {
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Zmień nazwę</Text>
                 <TouchableOpacity style={styles.modalCloseButton} onPress={() => setRenameModalVisible(false)}>
-                  <SvgXml xml={closeIcon} width={24} height={24} />
+                  <SvgXml xml={closeIcon} width={s(24)} height={s(24)} />
                 </TouchableOpacity>
               </View>
               <TextInput style={styles.modalInput} value={newFolderName} onChangeText={setNewFolderName} placeholder="Wpisz..." placeholderTextColor="#9D9D9D" autoFocus />
@@ -288,52 +287,38 @@ export default function WardrobeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFAF6", paddingTop: 56, paddingHorizontal: 20 },
+  container: { flex: 1, backgroundColor: "#FFFAF6", paddingTop: s(56), paddingHorizontal: s(20) },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  title: { fontSize: 18, fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: 26, textAlign: "center", marginBottom: 16 },
-  offlineBanner: { backgroundColor: "#FFF3E0", borderRadius: 10, padding: 10, marginBottom: 12, alignItems: "center", borderWidth: 1, borderColor: "#A37D5D" },
-  offlineText: { color: "#A37D5D", fontSize: 13, fontFamily: "Inter", fontWeight: "500" },
-  createButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, borderWidth: 2, borderColor: "#A37D5D", borderStyle: "dashed", borderRadius: 30, height: 50, marginBottom: 16 },
-  createButtonText: { color: "#A37D5D", fontSize: 16, fontWeight: "700", fontFamily: "Inter" },
-  row: { justifyContent: "space-between", marginBottom: 19 },
-  folder: { width: "47%", aspectRatio: 1, borderRadius: 30, backgroundColor: "rgba(163, 125, 93, 0.2)", alignItems: "center", justifyContent: "center" },
-  folderText: { fontSize: 16, fontWeight: "700", color: "#A37D5D", fontFamily: "Inter", marginTop: 6, textAlign: "center" },
-  blurOverlay: {
-    position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 100,
-    backgroundColor: "rgba(0,0,0,0.50)",
-  },
-  blurText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#EDE1D7",
-    fontFamily: "Inter",
-    textAlign: "center",
-    paddingHorizontal: 40,
-  },
+  title: { fontSize: fs(18), fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: fs(26), textAlign: "center", marginBottom: s(16) },
+  offlineBanner: { backgroundColor: "#FFF3E0", borderRadius: s(10), padding: s(10), marginBottom: s(12), alignItems: "center", borderWidth: 1, borderColor: "#A37D5D" },
+  offlineText: { color: "#A37D5D", fontSize: fs(13), fontFamily: "Inter", fontWeight: "500" },
+  createButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: s(8), borderWidth: 2, borderColor: "#A37D5D", borderStyle: "dashed", borderRadius: s(30), height: s(50), marginBottom: s(16) },
+  createButtonText: { color: "#A37D5D", fontSize: fs(16), fontWeight: "700", fontFamily: "Inter" },
+  row: { justifyContent: "space-between", marginBottom: s(19) },
+  folder: { width: "47%", aspectRatio: 1, borderRadius: s(30), backgroundColor: "rgba(163, 125, 93, 0.2)", alignItems: "center", justifyContent: "center" },
+  folderText: { fontSize: fs(16), fontWeight: "700", color: "#A37D5D", fontFamily: "Inter", marginTop: s(6), textAlign: "center" },
+  blurOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "center", alignItems: "center", zIndex: 100, backgroundColor: "rgba(0,0,0,0.50)" },
+  blurText: { fontSize: fs(18), fontWeight: "700", color: "#EDE1D7", fontFamily: "Inter", textAlign: "center", paddingHorizontal: s(40) },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  modalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 12 },
+  modalBox: { backgroundColor: "#EDE1D7", borderRadius: s(30), padding: s(24), width: s(353), alignItems: "center", gap: s(12) },
   modalHeader: { flexDirection: "row", justifyContent: "center", alignItems: "center", width: "100%", position: "relative" },
   modalCloseButton: { position: "absolute", right: 0 },
-  modalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", flex: 1, textAlign: "center" },
-  modalSubtitle: { fontSize: 16, fontWeight: "400", color: "#202C39", fontFamily: "Inter", textAlign: "center" },
-  modalButtonPrimary: { width: 305, height: 48, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
-  modalButtonPrimaryText: { color: "#FFFAF6", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
-  modalButtonDanger: { width: 305, height: 48, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
-  modalButtonDangerText: { color: "#E05744", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
-  modalInput: { width: 305, backgroundColor: "#FFFAF6", borderRadius: 30, padding: 12, paddingHorizontal: 20, fontSize: 16, fontFamily: "Inter", color: "#202C39" },
-  modalButton: { width: 305, height: 48, borderRadius: 30, justifyContent: "center", alignItems: "center" },
+  modalTitle: { fontSize: fs(16), fontWeight: "700", color: "#202C39", fontFamily: "Inter", flex: 1, textAlign: "center" },
+  modalSubtitle: { fontSize: fs(16), fontWeight: "400", color: "#202C39", fontFamily: "Inter", textAlign: "center" },
+  modalButtonPrimary: { width: s(305), height: s(48), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  modalButtonPrimaryText: { color: "#FFFAF6", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  modalButtonDanger: { width: s(305), height: s(48), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  modalButtonDangerText: { color: "#E05744", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  modalInput: { width: s(305), backgroundColor: "#FFFAF6", borderRadius: s(30), padding: s(12), paddingHorizontal: s(20), fontSize: fs(16), fontFamily: "Inter", color: "#202C39" },
+  modalButton: { width: s(305), height: s(48), borderRadius: s(30), justifyContent: "center", alignItems: "center" },
   modalButtonActive: { backgroundColor: "#A37D5D" },
   modalButtonInactive: { backgroundColor: "#9D9D9D" },
-  modalButtonText: { color: "#FFFAF6", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
-  deleteModalBox: { backgroundColor: "#EDE1D7", borderRadius: 30, padding: 24, width: 353, alignItems: "center", gap: 16 },
-  deleteModalTitle: { fontSize: 16, fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: 24 },
-  deleteModalButtons: { flexDirection: "row", gap: 12 },
-  deleteModalButtonSafe: { width: 152, height: 50, borderRadius: 30, backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
-  deleteModalButtonSafeText: { color: "#FFFFFF", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
-  deleteModalButtonDanger: { width: 152, height: 50, borderRadius: 30, borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
-  deleteModalButtonDangerText: { color: "#E05744", fontSize: 16, fontFamily: "Inter", fontWeight: "400" },
+  modalButtonText: { color: "#FFFAF6", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  deleteModalBox: { backgroundColor: "#EDE1D7", borderRadius: s(30), padding: s(24), width: s(353), alignItems: "center", gap: s(16) },
+  deleteModalTitle: { fontSize: fs(16), fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: fs(24) },
+  deleteModalButtons: { flexDirection: "row", gap: s(12) },
+  deleteModalButtonSafe: { width: s(152), height: s(50), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
+  deleteModalButtonSafeText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
+  deleteModalButtonDanger: { width: s(152), height: s(50), borderRadius: s(30), borderWidth: 2, borderColor: "#E05744", justifyContent: "center", alignItems: "center" },
+  deleteModalButtonDangerText: { color: "#E05744", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
 });
