@@ -123,7 +123,7 @@ export const deleteImage = async (imageId: string, imageUrl: string) => {
   console.log("Zdjęcie usunięte!");
 };
 
-// Proce przełączenia pomiędzy ulubione/nie ulubione
+// Proces przełączenia pomiędzy ulubione/nie ulubione
 export const toggleFavorite = async (imageId: string, currentValue: boolean) => {
   const { error } = await supabase
     .from("images")

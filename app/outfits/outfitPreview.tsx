@@ -40,6 +40,7 @@ export default function OutfitPreviewScreen() {
   const [isAutoLayout, setIsAutoLayout] = useState(false);
   const [noClothingDetected, setNoClothingDetected] = useState(false);
   const [savedModalVisible, setSavedModalVisible] = useState(false);
+  const [saveErrorVisible, setSaveErrorVisible] = useState(false);
 
   useEffect(() => {
     if (images.length > 0) {
@@ -163,6 +164,7 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
       setSavedModalVisible(true);
     } catch (e) {
       console.error("Błąd zapisywania:", e);
+      setSaveErrorVisible(true);
     } finally {
       setIsSaving(false);
     }
@@ -204,7 +206,6 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
             </View>
           )}
 
-          {/* Duży prostokąt ze stylizacją */}
           <View style={styles.moodboardCard}>
             {isAutoLayout ? (
               <View style={styles.autoGrid}>
@@ -265,7 +266,6 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
             )}
           </View>
 
-          {/* Kнопка zapisz — 8px od karty */}
           <TouchableOpacity
             style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
             onPress={handleSave}
@@ -306,6 +306,27 @@ Zwróć TYLKO JSON, bez żadnego dodatkowego tekstu:
               }}
             >
               <Text style={styles.modalButtonDangerText}>Wróć na ekran główny</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={saveErrorVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSaveErrorVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>
+              Nie udało się zapisać stylizacji. Sprawdź połączenie z internetem i spróbuj ponownie.
+            </Text>
+            <TouchableOpacity
+              style={styles.modalButtonSafeFull}
+              onPress={() => setSaveErrorVisible(false)}
+            >
+              <Text style={styles.modalButtonSafeFullText}>OK</Text>
             </TouchableOpacity>
           </View>
         </View>
