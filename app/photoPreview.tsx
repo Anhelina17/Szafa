@@ -52,7 +52,6 @@ export default function PhotoPreviewScreen() {
     }
   };
 
-  // Ekran ładowania
   if (isLoading) {
     return (
       <View style={styles.loadingFullScreen}>
@@ -62,7 +61,6 @@ export default function PhotoPreviewScreen() {
     );
   }
 
-  // Ekran po usunięciu tła
   if (resultUri) {
     return (
       <View style={styles.fullScreenBeige}>
@@ -87,10 +85,9 @@ export default function PhotoPreviewScreen() {
     );
   }
 
-  // Ekran podglądu przed usunięciem tła
   return (
     <View style={styles.fullScreenDark}>
-      <Image source={{ uri }} style={styles.image} resizeMode="contain" />
+      <Image source={{ uri }} style={styles.image} resizeMode="cover" />
 
       <ImageBackground
         source={require("../assets/images/gradient-header.png")}
@@ -124,12 +121,11 @@ const styles = StyleSheet.create({
   fullScreenBeige: {
     flex: 1,
     backgroundColor: "#FFFAF6",
+    justifyContent: "space-between",
   },
   plainHeader: {
-    position: "absolute",
-    top: s(64),
-    left: s(20),
-    zIndex: 10,
+    paddingTop: s(64),
+    paddingHorizontal: s(20),
     flexDirection: "row",
     alignItems: "center",
   },
@@ -158,15 +154,14 @@ const styles = StyleSheet.create({
   },
   image: {
     flex: 1,
+    width: "100%",
   },
   buttonRow: {
-    position: "absolute",
-    bottom: s(32),
-    left: s(20),
-    right: s(20),
     flexDirection: "row",
     justifyContent: "space-between",
     gap: s(10),
+    paddingHorizontal: s(20),
+    paddingBottom: s(32),
   },
   buttonRowCenter: {
     position: "absolute",
