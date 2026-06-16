@@ -140,7 +140,7 @@ export default function FavoritesScreen() {
       <Modal visible={deleteOptionsModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteOptionsModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Co chcesz zrobić z tym zdjęciem?</Text>
+           <Text style={styles.modalTitle}>Co chcesz zrobić{"\n"}z tym zdjęciem?</Text>
             <TouchableOpacity style={styles.modalButtonDangerFull} onPress={() => { setDeleteOptionsModalVisible(false); setDeleteConfirmModalVisible(true); }}>
               <Text style={styles.modalButtonDangerText}>Usuń zdjęcie</Text>
             </TouchableOpacity>

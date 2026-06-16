@@ -32,6 +32,10 @@ const heartOutlineIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" hei
   <path fill-rule="evenodd" clip-rule="evenodd" d="M12 6.00019C10.2006 3.90317 7.19377 3.2551 4.93923 5.17534C2.68468 7.09558 2.36727 10.3061 4.13778 12.5772C5.60984 14.4654 10.0648 18.4479 11.5249 19.7369C11.6882 19.8811 11.7699 19.9532 11.8652 19.9815C11.9483 20.0062 12.0393 20.0062 12.1225 19.9815C12.2178 19.9532 12.2994 19.8811 12.4628 19.7369C13.9229 18.4479 18.3778 14.4654 19.8499 12.5772C21.6204 10.3061 21.3417 7.07538 19.0484 5.17534C16.7551 3.2753 13.7994 3.90317 12 6.00019Z" stroke="#A37D5D" stroke-width="2.06897" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
+const closeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+  <path d="M6.99505 7.00627C6.60452 7.3968 6.60452 8.02996 6.99505 8.42049L10.5802 12.0056L6.99505 15.5908C6.60452 15.9813 6.60452 16.6145 6.99505 17.005C7.38557 17.3955 8.01874 17.3955 8.40926 17.005L11.9944 13.4198L15.5796 17.005C15.9701 17.3955 16.6033 17.3955 16.9938 17.005C17.3843 16.6145 17.3843 15.9813 16.9938 15.5908L13.4086 12.0056L16.9938 8.4205C17.3843 8.02998 17.3843 7.39681 16.9938 7.00629C16.6032 6.61576 15.9701 6.61576 15.5796 7.00629L11.9944 10.5914L8.40926 7.00627C8.01874 6.61575 7.38557 6.61575 6.99505 7.00627Z" fill="#0F0F0F"/>
+</svg>`;
+
 export default function FolderViewScreen() {
   const { folderId, folderName } = useLocalSearchParams<{ folderId: string; folderName: string }>();
   const router = useRouter();
@@ -243,18 +247,18 @@ export default function FolderViewScreen() {
       <Modal visible={deleteOptionsModalVisible} transparent animationType="fade" onRequestClose={() => setDeleteOptionsModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Co chcesz zrobić z tym zdjęciem?</Text>
+            <TouchableOpacity style={styles.modalCloseButton} onPress={() => setDeleteOptionsModalVisible(false)}>
+              <SvgXml xml={closeIcon} width={s(24)} height={s(24)} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Co zrobisz z tym zdjęciem?</Text>
             <TouchableOpacity style={styles.modalButtonMoveFull} onPress={handleOpenMoveFolder}>
               <Text style={styles.modalButtonMoveText}>Przenieś do innego folderu</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButtonMoveFull} onPress={handleOpenAddFolder}>
-              <Text style={styles.modalButtonMoveText}>Dodaj do innych folderów</Text>
+            <TouchableOpacity style={styles.modalButtonCancelFull} onPress={handleOpenAddFolder}>
+              <Text style={styles.modalButtonCancelText}>Dodaj do innych folderów</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.modalButtonDangerFull} onPress={() => { setDeleteOptionsModalVisible(false); setDeleteConfirmModalVisible(true); }}>
               <Text style={styles.modalButtonDangerText}>Usuń zdjęcie</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButtonCancelFull} onPress={() => setDeleteOptionsModalVisible(false)}>
-              <Text style={styles.modalButtonCancelText}>Anuluj</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -295,8 +299,9 @@ const styles = StyleSheet.create({
   image: { width: "100%", height: "100%" },
   heartButton: { position: "absolute", top: s(12), right: s(12) },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
-  modalBox: { backgroundColor: "#EDE1D7", borderRadius: s(30), padding: s(24), width: s(353), alignItems: "center", gap: s(12) },
-  modalTitle: { fontSize: fs(16), fontWeight: "700", color: "#202C39", fontFamily: "Inter", textAlign: "center", lineHeight: fs(24) },
+  modalBox: { backgroundColor: "#EDE1D7", borderRadius: s(30), padding: s(24), paddingTop: s(40), width: s(353), alignItems: "center", gap: s(8) },
+  modalCloseButton: { position: "absolute", top: s(16), right: s(16) },
+  modalTitle: { fontSize: fs(16), fontWeight: "700", color: "#202C39", fontFamily: "Inter", lineHeight: fs(20), width: "100%", textAlign: "center", marginBottom: s(8) },
   modalButtons: { flexDirection: "row", gap: s(12) },
   modalButtonSafe: { width: s(152), height: s(50), borderRadius: s(30), backgroundColor: "#A37D5D", justifyContent: "center", alignItems: "center" },
   modalButtonSafeText: { color: "#FFFFFF", fontSize: fs(16), fontFamily: "Inter", fontWeight: "400" },
