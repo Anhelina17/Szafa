@@ -33,7 +33,12 @@ export default function PhotoPreviewScreen() {
 
   const handleConfirm = async () => {
     const safeUri = await convertIfHeic(uri);
-    process(safeUri);
+    const resized = await ImageManipulator.manipulateAsync(
+      safeUri,
+      [{ resize: { width: 800 } }],
+      { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+    );
+    process(resized.uri);
   };
 
   const handleDiscard = () => {
@@ -87,7 +92,8 @@ export default function PhotoPreviewScreen() {
 
   return (
     <View style={styles.fullScreenDark}>
-      <Image source={{ uri }} style={styles.image} resizeMode="cover" />
+      <Image source={{ uri }} style={styles.blurBg} resizeMode="cover" blurRadius={20} />
+      <Image source={{ uri }} style={styles.image} resizeMode="contain" />
 
       <ImageBackground
         source={require("../assets/images/gradient-header.png")}
@@ -122,6 +128,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFAF6",
     justifyContent: "space-between",
+  },
+  blurBg: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   plainHeader: {
     paddingTop: s(64),
